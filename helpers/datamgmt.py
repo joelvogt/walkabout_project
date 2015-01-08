@@ -1,10 +1,11 @@
 #-*- coding:utf-8 -*-
 __author__ = u'Joël Vogt'
-import time, sys, functools, cPickle, os, tempfile
+import time, sys, functools, cPickle, tempfile
 
 
 MESSAGE_HEADER = 'HDR'
 HEADER_DELIMITER = '||'
+DEFAULT_BUFFER_SIZE = 12288
 
 class AbstractIterator(object):
 
@@ -13,18 +14,6 @@ class AbstractIterator(object):
 
 
 def string_to_int(value): return int(value) if '.' not in value and ord(value[0]) >= ord('0') and ord(value[0]) <= ord('9') else value
-
-# def encode_stream_with_header(message):
-#     message_length = str(len(message))
-#     header_length = str(len(message_length))
-#     return '%s%s%s' %(header_length, message_length, message)
-#
-# def decode_stream_with_header(stream):
-#     header_length = int(stream[0]) + 1
-#     message_length = int(stream[1:header_length])
-#     print 'decode'
-#     print stream[header_length:message_length]
-#     return stream[header_length:message_length], stream[message_length:]
 
 
 def slice_evenly(arr,slice_size):
@@ -52,11 +41,9 @@ deserialize_data = __deserialize_data_config()
 
 
 class InputStreamBuffer(object):
-    def __init__(self, data=None, buffer_size=8192):
+    def __init__(self, data=None, buffer_size=DEFAULT_BUFFER_SIZE):
         self._buffer_size = buffer_size
-        # self._temp_file = 'inputbuffer-{0}.tmp'.format(time.clock())
         self._in_memory = [0, buffer_size]
-        # self._fd = open(self._temp_file, mode='w+', buffering=buffer_size)
         self._fd = tempfile.TemporaryFile()
         self._in_disk = [0, 0]
         self._size = 0

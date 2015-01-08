@@ -67,7 +67,6 @@ class SocketServerProxy(object):
         return self._methods_cache[name]
 
     def __del__(self):
-        print('closing tcp client socket')
         self._tcpCliSock.close()
         if self._methods_cache:
             map(self._flush_method, filter(lambda x: self._methods_cache[x].buffer_size > 0, self._buffered_methods))

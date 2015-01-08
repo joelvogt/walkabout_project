@@ -1,11 +1,10 @@
 # -*- coding:utf-8 -*-
+__author__ = u'Joël Vogt'
 import socket
 import multiprocessing
 
 from adapters import numpy_adapters as npa, base
 from helpers import datamgmt
-
-__author__ = u'Joël Vogt'
 
 
 class Remote_Module_Binder(object):
@@ -44,10 +43,14 @@ class Remote_Module_Binder(object):
             self._unbuffered_methods.append(func.__name__)
         self._register_function(networked_func, name=func.__name__)
 
+    def reset(self):
+        self._unbuffered_methods = []
+        self._buffered_methods = []
 
-class UDP_Module_Binder(Remote_Module_Binder):
 
-    def __init__(self, hostname, port, buffer_size=8192, adapters=[npa.numpy_to_xmlrpc]):
+class Socket_Module_Binder(Remote_Module_Binder):
+
+    def __init__(self, hostname, port, buffer_size=datamgmt.DEFAULT_BUFFER_SIZE, adapters=[npa.numpy_to_xmlrpc]):
         Remote_Module_Binder.__init__(self, hostname, port, buffer_size, adapters=adapters)
         self._remote_functions = []
         self._tcpSerSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -55,13 +58,15 @@ class UDP_Module_Binder(Remote_Module_Binder):
         self._tcpSerSock.listen(5)
         self._ready = True
 
+    def reset(self):
+        Remote_Module_Binder.reset()
+        self._remote_functions = []
+
     def _register_function(self, func, name):
         self._remote_functions.append(func)
 
     def __del__(self):
-
-        print('calling del server node')
-
+        self._tcpSerSock.close()
 
     def run(self):
         def function_process(tcp_client_socket):
@@ -73,10 +78,8 @@ class UDP_Module_Binder(Remote_Module_Binder):
                 if not datagram:
                     break
                 if not remote_function:
-
                     if datagram[:3] != datamgmt.MESSAGE_HEADER:
-                        print('WARNING')
-
+                        raise ReferenceError('Message does not contain header information and a function reference')
                     header, function, message_length, message = datagram.split(datamgmt.HEADER_DELIMITER)
                     remote_function = self._remote_functions[int(function)]
                     total_data_size = int(message_length)
@@ -84,12 +87,11 @@ class UDP_Module_Binder(Remote_Module_Binder):
                 else:
                     inputbuffer.extend(datagram)
                 if total_data_size < inputbuffer._size:
-                    print('ERRRRRRRORRRR')
+                    raise OverflowError('The size {0} is longer than the expected message size {1}'.format(inputbuffer._size, total_data_size))
                 elif total_data_size == inputbuffer._size:
                     frame = inputbuffer[0:inputbuffer._size]
                 else:
                     continue
-
                 args, kwargs = datamgmt.deserialize_data(frame)
                 try:
                     return_value = remote_function(*args, **kwargs)
@@ -99,10 +101,7 @@ class UDP_Module_Binder(Remote_Module_Binder):
                 remote_function = None
             tcp_client_socket.close()
 
-
         while True:
             tcpCliSock, addr = self._tcpSerSock.accept()
             multiprocessing.Process(target=function_process,args=(tcpCliSock,)).start()
-
-        self._tcpSerSock.close()
 
