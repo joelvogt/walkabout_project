@@ -1,1 +1,1 @@
-CERN Python clue to share and reuse scientific code
+CERN Python service to share and reuse code that represents domain specific knowledge
