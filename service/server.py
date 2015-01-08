@@ -9,7 +9,7 @@ import imp
 from SimpleXMLRPCServer import SimpleXMLRPCServer
 import socket
 import pprint
-import multiprocessing
+from multiprocessing import Process
 import rmodule.client
 import os
 
@@ -52,7 +52,7 @@ class Modules_Directory_Service(object):
             module.networked_function.functions_registry = []
             map(lambda x: module_binder_instance(*x), module.networked_function.functions_registry)
             module.networked_function.functions_registry = []
-            module_binder_process = multiprocessing.Process(target=module_binder_instance.run, name=module_name)
+            module_binder_process = Process(target=module_binder_instance.run, name=module_name)
             modules_processes[client][module_name] = [module_binder_process, module_binder_instance.connection_information(), os.path.getmtime(self._modules[module_name]['file'])]
             module_binder_process.start()
 

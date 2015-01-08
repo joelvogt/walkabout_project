@@ -103,5 +103,7 @@ class Socket_Module_Binder(Remote_Module_Binder):
 
         while True:
             tcpCliSock, addr = self._tcpSerSock.accept()
-            multiprocessing.Process(target=function_process,args=(tcpCliSock,)).start()
+            p = multiprocessing.Process(target=function_process, args=(tcpCliSock,))
+            # p.daemon = True
+            p.start()
 
