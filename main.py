@@ -3,8 +3,8 @@ __author__ = u'Joël Vogt'
 
 import ConfigParser
 
-from helpers.datamgmt import string_to_int
-from service.server import Modules_Directory_Service
+from helpers.datalib import string_to_int
+from base.server import Modules_Directory_Service
 
 
 config_options = dict(

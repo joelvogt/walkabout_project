@@ -3,7 +3,7 @@ __author__ = u'Joël Vogt'
 import functools
 import socket
 
-from helpers import datamgmt
+from helpers import datalib
 
 
 CLIENTS = [
@@ -34,10 +34,10 @@ class SocketServerProxy(object):
 
     def __getattr__(self, name):
         def remote_function(function_ref, tcpCliSock, server_address, buffer_size,  *args, **kwargs):
-            serialized = datamgmt.serialize_data((args, kwargs))
-            message = '%s||%d||%d||%s' % (datamgmt.MESSAGE_HEADER, function_ref, len(serialized), serialized)
+            serialized = datalib.serialize_data((args, kwargs))
+            message = '%s||%d||%d||%s' % (datalib.MESSAGE_HEADER, function_ref, len(serialized), serialized)
             tcpCliSock.send(message)
-            return_values = datamgmt.deserialize_data(tcpCliSock.recv(self._buffer_size))
+            return_values = datalib.deserialize_data(tcpCliSock.recv(self._buffer_size))
             if isinstance(return_values, Exception):
                 raise return_values
             else:

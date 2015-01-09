@@ -1,4 +1,6 @@
 #-*- coding:utf-8 -*-
+from helpers.moduleslib import networked_function
+
 __author__ = u'Joël Vogt'
 from rmodule.server import Socket_Module_Binder
 
@@ -14,11 +16,7 @@ import rmodule.client
 import os
 
 
-def networked_function(buffered=False):
-    def wrapper(func):
-        networked_function.functions_registry.append((func, buffered))
-        return func
-    return wrapper
+
 
 networked_function.functions_registry = []
 
@@ -48,8 +46,6 @@ class Modules_Directory_Service(object):
     def import_module(self, module_name, client=0):
         def bind_module(modules_processes, module_binder_instance, module_ref):
             module = imp.load_source(module_ref['name'], module_ref['file'])
-            map(lambda x: module_binder_instance(*x), module.networked_function.functions_registry)
-            module.networked_function.functions_registry = []
             map(lambda x: module_binder_instance(*x), module.networked_function.functions_registry)
             module.networked_function.functions_registry = []
             module_binder_process = Process(target=module_binder_instance.run, name=module_name)

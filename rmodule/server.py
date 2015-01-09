@@ -4,7 +4,7 @@ import socket
 import multiprocessing
 
 from adapters import numpy_adapters as npa, base
-from helpers import datamgmt
+from helpers import datalib
 
 
 class Remote_Module_Binder(object):
@@ -50,7 +50,7 @@ class Remote_Module_Binder(object):
 
 class Socket_Module_Binder(Remote_Module_Binder):
 
-    def __init__(self, hostname, port, buffer_size=datamgmt.DEFAULT_BUFFER_SIZE, adapters=[npa.numpy_to_xmlrpc]):
+    def __init__(self, hostname, port, buffer_size=datalib.DEFAULT_BUFFER_SIZE, adapters=[npa.numpy_to_xmlrpc]):
         Remote_Module_Binder.__init__(self, hostname, port, buffer_size, adapters=adapters)
         self._remote_functions = []
         self._tcpSerSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -78,12 +78,12 @@ class Socket_Module_Binder(Remote_Module_Binder):
                 if not datagram:
                     break
                 if not remote_function:
-                    if datagram[:3] != datamgmt.MESSAGE_HEADER:
+                    if datagram[:3] != datalib.MESSAGE_HEADER:
                         raise ReferenceError('Message does not contain header information and a function reference')
-                    header, function, message_length, message = datagram.split(datamgmt.HEADER_DELIMITER)
+                    header, function, message_length, message = datagram.split(datalib.HEADER_DELIMITER)
                     remote_function = self._remote_functions[int(function)]
                     total_data_size = int(message_length)
-                    inputbuffer = datamgmt.InputStreamBuffer(message)
+                    inputbuffer = datalib.InputStreamBuffer(message)
                 else:
                     inputbuffer.extend(datagram)
                 if total_data_size < inputbuffer._size:
@@ -92,12 +92,12 @@ class Socket_Module_Binder(Remote_Module_Binder):
                     frame = inputbuffer[0:inputbuffer._size]
                 else:
                     continue
-                args, kwargs = datamgmt.deserialize_data(frame)
+                args, kwargs = datalib.deserialize_data(frame)
                 try:
                     return_value = remote_function(*args, **kwargs)
                 except Exception as e:
                     return_value = e
-                tcp_client_socket.send(datamgmt.serialize_data(return_value))
+                tcp_client_socket.send(datalib.serialize_data(return_value))
                 remote_function = None
             tcp_client_socket.close()
 
