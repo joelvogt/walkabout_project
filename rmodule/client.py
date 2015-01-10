@@ -35,7 +35,14 @@ class SocketServerProxy(object):
     def __getattr__(self, name):
         def remote_function(function_ref, tcpCliSock, server_address, buffer_size,  *args, **kwargs):
             serialized = datalib.serialize_data((args, kwargs))
-            message = '%s||%d||%d||%s' % (datalib.MESSAGE_HEADER, function_ref, len(serialized), serialized)
+            message = '%(header)s%(delimiter)s%(function_ref)d%(delimiter)s%(message_length)d%(delimiter)s%(header_end)s%(message)s' % dict(
+                header=datalib.MESSAGE_HEADER,
+                function_ref=function_ref,
+                message_length=len(serialized),
+                message=serialized,
+                delimiter=datalib.HEADER_DELIMITER,
+                header_end = datalib.MESSAGE_HEADER_END)
+
             tcpCliSock.send(message)
             return_values = datalib.deserialize_data(tcpCliSock.recv(self._buffer_size))
             if isinstance(return_values, Exception):

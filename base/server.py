@@ -18,7 +18,7 @@ import os
 
 
 
-networked_function.functions_registry = []
+
 
 MODULES_BINDER_REGISTRY = [
     # XMLRPC_Node,

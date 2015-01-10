@@ -7,3 +7,6 @@ def networked_function(buffered=False):
         networked_function.functions_registry.append((func, buffered))
         return func
     return wrapper
+
+
+networked_function.functions_registry = []

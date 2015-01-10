@@ -80,7 +80,10 @@ class Socket_Module_Binder(Remote_Module_Binder):
                 if not remote_function:
                     if datagram[:3] != datalib.MESSAGE_HEADER:
                         raise ReferenceError('Message does not contain header information and a function reference')
-                    header, function, message_length, message = datagram.split(datalib.HEADER_DELIMITER)
+                    header, message = datagram.split('%(delimiter)s%(header_end)s' % dict(
+                        delimiter=datalib.HEADER_DELIMITER,
+                        header_end = datalib.MESSAGE_HEADER_END))
+                    header, function, message_length = header.split(datalib.HEADER_DELIMITER)
                     remote_function = self._remote_functions[int(function)]
                     total_data_size = int(message_length)
                     inputbuffer = datalib.InputStreamBuffer(message)

@@ -4,8 +4,9 @@ import time, sys, functools, cPickle, tempfile
 
 
 MESSAGE_HEADER = 'HDR'
-HEADER_DELIMITER = '||'
-DEFAULT_BUFFER_SIZE = 12288
+MESSAGE_HEADER_END = 'EOH' 
+HEADER_DELIMITER = '|'
+DEFAULT_BUFFER_SIZE = 65536
 
 class AbstractIterator(object):
 
@@ -24,7 +25,7 @@ def slice_evenly(arr,slice_size):
 def __serialize_data_config():
     python_interpreters = dict(
         Jython = cPickle.dumps,
-        CPython = functools.partial(cPickle.dumps, protocol=0),
+        CPython = functools.partial(cPickle.dumps, protocol=2),
         PyPy = functools.partial(cPickle.dumps, protocol=2)
     )
     return python_interpreters[sys.subversion[0]]
