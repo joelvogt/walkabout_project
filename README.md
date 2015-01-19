@@ -5,3 +5,5 @@ Joël Vogt, joel.vogt@cern.ch
 Stefano Romano, stefano.romano@cern.ch
 Fabrizio Murtas, fabrizio.murtas@cern.ch
 Marco Silari, marco.silari@cern.ch
+Stuart Patrick George, stuart.george@cern.ch
+Alessandro Curioni, alessandro.curioni@cern.ch
