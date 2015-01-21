@@ -57,7 +57,6 @@ class SocketServerProxy(object):
                 self._buffer.append((args, kwargs))
                 if len(self._buffer) == BUFFER_SIZE:
                     func(self._buffer)
-                    print(len(self._buffer))
                     self._buffer = []
                     self._buffer_size = 0
 

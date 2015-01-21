@@ -6,5 +6,5 @@ events = 0
 @networked_function(buffered=True)
 def write(event):
     global events
-    events += 1
+    events += len(event)
     print(events)
