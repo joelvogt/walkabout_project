@@ -62,8 +62,7 @@ class SocketServerProxy(object):
 
             def __del__(self):
                 self._func(self._buffer)
-
-        if name is not self._last_method_name:
+        if name != self._last_method_name:
             self._last_method_name = name
             func = functools.partial(remote_function, self._methods_registry.index(name), self._tcpCliSock, self._server_address, self._buffer_size)
             self._last_method  = \

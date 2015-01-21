@@ -2,9 +2,7 @@
 __author__ = u'Joël Vogt'
 from helpers.moduleslib import networked_function
 
-events = 0
+
 @networked_function(buffered=True)
 def write(event):
-    global events
-    events += len(event)
-    print(events)
+    print event
