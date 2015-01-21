@@ -42,10 +42,13 @@ deserialize_data = __deserialize_data_config()
 
 
 class InputStreamBuffer(object):
-    def __init__(self, data=None, buffer_size=DEFAULT_BUFFER_SIZE):
+    def __init__(self, data=None, file_name=None, buffer_size=DEFAULT_BUFFER_SIZE):
         self._buffer_size = buffer_size
         self._in_memory = [0, buffer_size]
-        self._fd = tempfile.TemporaryFile()
+        if file_name is not None:
+            self._fd = open(file_name, 'w')
+        else:
+            self._fd = tempfile.TemporaryFile()
         self._in_disk = [0, 0]
         self._size = 0
         if data:
