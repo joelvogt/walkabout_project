@@ -31,6 +31,7 @@ class Remote_Module_Binder(object):
     def __call__(self, func, buffered=False):
         def buffered_function(func):
             def onCall(params):
+                print('params')
                 return [func(*args, **kwargs) for args, kwargs in params]
             return onCall
         networked_func = func
@@ -55,7 +56,7 @@ class Socket_Module_Binder(Remote_Module_Binder):
         self._remote_functions = []
         self._tcpSerSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._tcpSerSock.bind((self._hostname, self._port))
-        self._tcpSerSock.listen(5)
+        self._tcpSerSock.listen(50)
         self._ready = True
 
     def reset(self):

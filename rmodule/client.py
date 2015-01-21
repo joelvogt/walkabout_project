@@ -16,7 +16,7 @@ CLIENTS = [
 
 
 class SocketServerProxy(object):
-    def __init__(self, hostname, port, buffer_size, unbuffered_methods, buffered_methods = [], buffer_limit=512):
+    def __init__(self, hostname, port, buffer_size, unbuffered_methods, buffered_methods = [], buffer_limit=2048):
         self._methods_cache = {}
         self._server_address = (hostname, port)
         self._buffer_size = buffer_size
@@ -62,13 +62,14 @@ class SocketServerProxy(object):
             onCall.buffer = []
             onCall.buffer_size = 0
             return onCall
+
         if name not in self._methods_cache:
             func = functools.partial(remote_function, self._methods_registry.index(name), self._tcpCliSock, self._server_address, self._buffer_size)
             self._methods_cache[name] = \
                 wrapper(func) \
                     if name in self._buffered_methods \
                     else func
-        if name != self._last_method and name in self._buffered_methods:
+        if name == self._last_method and name in self._buffered_methods:
             self._flush_method(name)
         self._last_method = name
         return self._methods_cache[name]

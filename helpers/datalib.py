@@ -6,7 +6,7 @@ import time, sys, functools, cPickle, tempfile
 MESSAGE_HEADER = 'HDR'
 MESSAGE_HEADER_END = 'EOH' 
 HEADER_DELIMITER = '|'
-DEFAULT_BUFFER_SIZE = 65536
+DEFAULT_BUFFER_SIZE = 16384
 
 class AbstractIterator(object):
 
