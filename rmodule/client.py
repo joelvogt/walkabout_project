@@ -2,9 +2,11 @@
 __author__ = u'Joël Vogt'
 import functools
 import socket
+import weakref
 
 from helpers import datalib
 
+BUFFER_SIZE = 8192
 
 CLIENTS = [
     'default',
@@ -16,21 +18,16 @@ CLIENTS = [
 
 
 class SocketServerProxy(object):
-    def __init__(self, hostname, port, buffer_size, unbuffered_methods, buffered_methods = [], buffer_limit=2048):
+    def __init__(self, hostname, port, buffer_size, unbuffered_methods, buffered_methods = []):
         self._methods_cache = {}
         self._server_address = (hostname, port)
         self._buffer_size = buffer_size
         self._last_method = None
-        self._buffer_limit = buffer_limit
+        self._last_method_name = None
         self._buffered_methods = buffered_methods
         self._methods_registry = unbuffered_methods + buffered_methods
         self._tcpCliSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._tcpCliSock.connect(self._server_address)
-
-    def _flush_method(self, name):
-        flush_func = self._methods_cache[name]
-        flush_func.buffer_size = self._buffer_limit - 1
-        flush_func(flush_func.buffer.pop())
 
     def __getattr__(self, name):
         def remote_function(function_ref, tcpCliSock, server_address, buffer_size,  *args, **kwargs):
@@ -44,37 +41,38 @@ class SocketServerProxy(object):
                 header_end = datalib.MESSAGE_HEADER_END)
 
             tcpCliSock.send(message)
-            return_values = datalib.deserialize_data(tcpCliSock.recv(self._buffer_size))
+            return_values = datalib.deserialize_data(tcpCliSock.recv(buffer_size))
             if isinstance(return_values, Exception):
                 raise return_values
             else:
                 return return_values
 
-        def wrapper(func):
-            def onCall(*args, **kwargs):
-                onCall.buffer.append((args, kwargs))
-                onCall.buffer_size += 1
-                if onCall.buffer_size == self._buffer_limit:
-                    res = func(onCall.buffer)
-                    onCall.buffer = []
-                    onCall.buffer_size = 0
-                    return res
-            onCall.buffer = []
-            onCall.buffer_size = 0
-            return onCall
+        class BufferedMethod(object):
 
-        if name not in self._methods_cache:
+            def __init__(self, func):
+                self._buffer = []
+                self._func = func
+
+            def __call__(self, *args, **kwargs):
+                self._buffer.append((args, kwargs))
+                if len(self._buffer) == BUFFER_SIZE:
+                    func(self._buffer)
+                    print(len(self._buffer))
+                    self._buffer = []
+                    self._buffer_size = 0
+
+            def __del__(self):
+                self._func(self._buffer)
+
+        if name is not self._last_method_name:
+            self._last_method_name = name
             func = functools.partial(remote_function, self._methods_registry.index(name), self._tcpCliSock, self._server_address, self._buffer_size)
-            self._methods_cache[name] = \
-                wrapper(func) \
+            self._last_method  = \
+                BufferedMethod(func) \
                     if name in self._buffered_methods \
                     else func
-        if name == self._last_method and name in self._buffered_methods:
-            self._flush_method(name)
-        self._last_method = name
-        return self._methods_cache[name]
+        return self._last_method
 
     def __del__(self):
+        del self._last_method
         self._tcpCliSock.close()
-        if self._methods_cache:
-            map(self._flush_method, filter(lambda x: self._methods_cache[x].buffer_size > 0, self._buffered_methods))

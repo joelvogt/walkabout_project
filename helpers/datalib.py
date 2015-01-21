@@ -69,8 +69,6 @@ class InputStreamBuffer(object):
         self._size += len(data)
 
     def __getitem__(self, i):
-        # self._fd.flush()
-        # sys.stdout.flush()
         self._fd.seek(self.__adjust_memory_pointers(i))
         return self._fd.read(1)
 
@@ -81,23 +79,8 @@ class InputStreamBuffer(object):
             self._in_disk[0] += position
 
     def __getslice__(self, i, j):
-        # self._fd.flush()
-        # sys.stdout.flush()
         i = self.__adjust_memory_pointers(i)
         j = self.__adjust_memory_pointers(j)
         slice = j - i
         self._fd.seek(i)
         return self._fd.read(slice)
-
-
-
-
-
-class Timer:
-    def __enter__(self):
-        self.start = time.clock()
-        return self
-
-    def __exit__(self, *args):
-        self.end = time.clock()
-        self.interval = self.end - self.start

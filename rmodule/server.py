@@ -31,7 +31,6 @@ class Remote_Module_Binder(object):
     def __call__(self, func, buffered=False):
         def buffered_function(func):
             def onCall(params):
-                print('params')
                 return [func(*args, **kwargs) for args, kwargs in params]
             return onCall
         networked_func = func
