@@ -6,7 +6,7 @@ import time, sys, functools, cPickle, tempfile
 MESSAGE_HEADER = 'HDR'
 MESSAGE_HEADER_END = 'EOH' 
 HEADER_DELIMITER = '|'
-DEFAULT_BUFFER_SIZE = 16384
+DEFAULT_BUFFER_SIZE = 8192
 
 class AbstractIterator(object):
 
@@ -42,9 +42,9 @@ deserialize_data = __deserialize_data_config()
 
 
 class InputStreamBuffer(object):
-    def __init__(self, data=None, file_name=None, buffer_size=DEFAULT_BUFFER_SIZE):
-        self._buffer_size = buffer_size
-        self._in_memory = [0, buffer_size]
+    def __init__(self, data=None, file_name=None):
+        self._buffer_size = DEFAULT_BUFFER_SIZE
+        self._in_memory = [0, self._buffer_size]
         if file_name is not None:
             self._fd = open(file_name, 'w')
         else:

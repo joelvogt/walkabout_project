@@ -4,9 +4,10 @@ import functools
 import socket
 
 from helpers import datalib
+from threading import Thread
 
 
-BUFFER_SIZE = 8192
+BUFFER_SIZE = 4096
 
 CLIENTS = [
     'default',
@@ -14,6 +15,8 @@ CLIENTS = [
     'CPython',
     'PyPy'
 ]
+
+
 class BufferedMethod(object):
 
     def __init__(self, func):
@@ -21,10 +24,15 @@ class BufferedMethod(object):
         self._func = func
 
     def __call__(self, *args, **kwargs):
+        def process_wrapper(func, return_value, buffer):
+            return_value.append(func(buffer[:]))
         self._buffer.append((args, kwargs))
         if len(self._buffer) == BUFFER_SIZE:
             """Even without a return value, exceptions can be returned an forwarded"""
-            ret = self._func(self._buffer)
+            return_value = []
+            Thread(target=process_wrapper(self._func, return_value, self._buffer)).start()
+            # ret = self._func(self._buffer)
+            ret = return_value.pop()
             self._buffer = []
             self._buffer_size = 0
             return ret
