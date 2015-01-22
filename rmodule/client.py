@@ -5,6 +5,7 @@ import socket
 
 from helpers import datalib
 from threading import Thread
+from Queue import Queue
 
 
 BUFFER_SIZE = 4096
@@ -20,28 +21,51 @@ CLIENTS = [
 class BufferedMethod(object):
 
     def __init__(self, func):
-        self._buffer = []
-        self._func = func
+        # self._func = func
+        self._args_queue = Queue()
+        self._return_value = []
+        def process_wrapper(func, return_value, args_queue):
+            buffer = []
+            run = True
+            while run:
+                item = args_queue.get()
+                buffer.append(item)
+                if item == 'EOF':
+                    buffer.pop()
+                    print('end received')
+                    run = False
+                elif len(buffer) > BUFFER_SIZE:
+                    continue
+                return_value.append(func(buffer))
+                buffer = []
+        self._network_func = Thread(target=process_wrapper, args=(func, self._return_value, self._args_queue))
+        self._network_func.start()
 
     def __call__(self, *args, **kwargs):
-        def process_wrapper(func, return_value, buffer):
-            return_value.append(func(buffer[:]))
-        self._buffer.append((args, kwargs))
-        if len(self._buffer) == BUFFER_SIZE:
-            """Even without a return value, exceptions can be returned an forwarded"""
-            return_value = []
-            Thread(target=process_wrapper(self._func, return_value, self._buffer)).start()
+
+
+        self._args_queue.put((args, kwargs))
+
+        # if len(self._buffer) == BUFFER_SIZE:
+        #     """Even without a return value, exceptions can be returned an forwarded"""
+            # return_value = []
+            # Thread(target=process_wrapper(self._func, return_value, self._buffer)).start()
             # ret = self._func(self._buffer)
-            ret = return_value.pop()
-            self._buffer = []
-            self._buffer_size = 0
-            return ret
+            # ret = return_value.pop()
+            # self._buffer = []
+            # self._buffer_size = 0
+            # return ret
 
     def __del__(self): # Workaround for Jython not calling the destructor
-        if self._buffer is not None:
-            ret = self._func(self._buffer)
-            self._buffer = None
-            return ret
+
+        if self._network_func.isAlive():
+            print('end')
+            self._args_queue.put('EOF')
+            self._args_queue.join()
+        # if self._buffer is not None:
+        #     ret = self._func(self._buffer)
+        #     self._buffer = None
+        #     return ret
 
 
 class SocketServerProxy(object):

@@ -95,6 +95,7 @@ class Socket_Module_Binder(Remote_Module_Binder):
                     frame = inputbuffer[0:inputbuffer._size]
                 else:
                     continue
+
                 args, kwargs = datalib.deserialize_data(frame)
                 try:
                     return_value = remote_function(*args, **kwargs)
@@ -107,6 +108,5 @@ class Socket_Module_Binder(Remote_Module_Binder):
         while True:
             tcpCliSock, addr = self._tcpSerSock.accept()
             p = multiprocessing.Process(target=function_process, args=(tcpCliSock,))
-            # p.daemon = True
             p.start()
 

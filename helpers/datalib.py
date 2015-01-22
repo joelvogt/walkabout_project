@@ -25,8 +25,8 @@ def slice_evenly(arr,slice_size):
 def __serialize_data_config():
     python_interpreters = dict(
         Jython = cPickle.dumps,
-        CPython = functools.partial(cPickle.dumps, protocol=2),
-        PyPy = functools.partial(cPickle.dumps, protocol=2)
+        CPython = functools.partial(cPickle.dumps, protocol=0),
+        PyPy = functools.partial(cPickle.dumps, protocol=0)
     )
     return python_interpreters[sys.subversion[0]]
 
