@@ -54,8 +54,8 @@ class BufferedMethod(object):
 
         if self._network_func.isAlive():
             print('end')
-            self._args_queue.join()
             self._args_queue.put('EOF')
+            self._args_queue.join()
             print('else')
         # if self._buffer is not None:
         #     ret = self._func(self._buffer)
