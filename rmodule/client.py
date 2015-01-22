@@ -25,19 +25,13 @@ class BufferedMethod(object):
         self._args_queue = Queue()
         self._return_value = []
         def process_wrapper(func, return_value, args_queue):
-            buffer = []
-            run = True
-            while run:
+
+
+            while True:
                 item = args_queue.get()
-                buffer.append(item)
-                if item == 'EOF':
-                    buffer.pop()
-                    print('end received')
-                    run = False
-                elif len(buffer) > BUFFER_SIZE:
-                    continue
-                return_value.append(func(buffer))
-                buffer = []
+                if item == 'EOF': break
+                func(item)
+                # return_value.append(func(item))
         self._network_func = Thread(target=process_wrapper, args=(func, self._return_value, self._args_queue))
         self._network_func.start()
 
@@ -60,8 +54,9 @@ class BufferedMethod(object):
 
         if self._network_func.isAlive():
             print('end')
-            self._args_queue.put('EOF')
             self._args_queue.join()
+            self._args_queue.put('EOF')
+            print('else')
         # if self._buffer is not None:
         #     ret = self._func(self._buffer)
         #     self._buffer = None
