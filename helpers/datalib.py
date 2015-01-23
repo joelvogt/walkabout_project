@@ -1,6 +1,6 @@
 #-*- coding:utf-8 -*-
 __author__ = u'Joël Vogt'
-import time, sys, functools, cPickle, tempfile
+import time, sys, functools, cPickle, tempfile, zlib
 
 
 MESSAGE_HEADER = 'HDR'
@@ -22,17 +22,27 @@ def slice_evenly(arr,slice_size):
         yield arr[i:i+slice_size]
 
 
+
 def __serialize_data_config():
+    def compress(func):
+        def onCall(data):
+            return zlib.compress(func(data))
+        return onCall
+
     python_interpreters = dict(
         Jython = cPickle.dumps,
         CPython = functools.partial(cPickle.dumps, protocol=0),
         PyPy = functools.partial(cPickle.dumps, protocol=0)
     )
-    return python_interpreters[sys.subversion[0]]
+    return compress(python_interpreters[sys.subversion[0]])
 
 
 def __deserialize_data_config():
-    return cPickle.loads
+    def decompress(func):
+        def onCall(data):
+            return func(zlib.decompress(data))
+        return onCall
+    return decompress(cPickle.loads)
 
 
 serialize_data = __serialize_data_config()
@@ -56,7 +66,6 @@ class InputStreamBuffer(object):
 
     def __del__(self):
         self._fd.close()
-        # os.remove(self._temp_file)
 
     def __adjust_memory_pointers(self, i):
         if i >= 0:
@@ -66,6 +75,7 @@ class InputStreamBuffer(object):
 
     def extend(self, data):
         self._fd.seek(self._in_disk[0] + self._size)
+
         self._fd.write(data)
         self._fd.flush()
 

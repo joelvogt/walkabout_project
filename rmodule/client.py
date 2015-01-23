@@ -5,10 +5,12 @@ import socket
 
 from helpers import datalib
 from threading import Thread
-from Queue import Queue
+from Queue import Queue, Empty
+from atexit import register
 
-
-BUFFER_SIZE = 4096
+BUFFER_SIZE = 8192
+TERMINATE_FUNCTION = 0
+CONTINUE_FUNCTION = 1
 
 CLIENTS = [
     'default',
@@ -17,50 +19,35 @@ CLIENTS = [
     'PyPy'
 ]
 
+def process_wrapper(func, args_queue):
+    while True:
+        try:
+            item = args_queue.get(timeout=1)
+            func(item)
+        except Empty:
+            break
+
 
 class BufferedMethod(object):
 
     def __init__(self, func):
-        # self._func = func
         self._args_queue = Queue()
-        self._return_value = []
-        def process_wrapper(func, return_value, args_queue):
-
-
-            while True:
-                item = args_queue.get()
-                if item == 'EOF': break
-                func(item)
-                # return_value.append(func(item))
-        self._network_func = Thread(target=process_wrapper, args=(func, self._return_value, self._args_queue))
+        self._buffer = []
+        self._func = func
+        self._network_func = Thread(target=process_wrapper, args=(func, self._args_queue))
         self._network_func.start()
 
     def __call__(self, *args, **kwargs):
+        self._buffer.append((args, kwargs))
+        if len(self._buffer) >= BUFFER_SIZE:
+            self._args_queue.put(self._buffer)
+            self._buffer = []
 
-
-        self._args_queue.put((args, kwargs))
-
-        # if len(self._buffer) == BUFFER_SIZE:
-        #     """Even without a return value, exceptions can be returned an forwarded"""
-            # return_value = []
-            # Thread(target=process_wrapper(self._func, return_value, self._buffer)).start()
-            # ret = self._func(self._buffer)
-            # ret = return_value.pop()
-            # self._buffer = []
-            # self._buffer_size = 0
-            # return ret
-
-    def __del__(self): # Workaround for Jython not calling the destructor
-
-        if self._network_func.isAlive():
-            print('end')
-            self._args_queue.put('EOF')
-            self._args_queue.join()
-            print('else')
-        # if self._buffer is not None:
-        #     ret = self._func(self._buffer)
-        #     self._buffer = None
-        #     return ret
+    def __del__(self):
+        if self._buffer:
+            self._network_func.join()
+            self._func(self._buffer)
+            self._buffer = None
 
 
 class SocketServerProxy(object):
@@ -74,6 +61,7 @@ class SocketServerProxy(object):
         self._methods_registry = unbuffered_methods + buffered_methods
         self._tcpCliSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._tcpCliSock.connect(self._server_address)
+        register(self.__del__) # Jython won't call this destructor
 
 
     def __getattr__(self, name):
@@ -94,11 +82,11 @@ class SocketServerProxy(object):
             else:
                 return return_values
 
-
         if name != self._last_method_name:
             self._last_method_name = name
             func = functools.partial(remote_function, self._methods_registry.index(name), self._tcpCliSock,
                                      self._server_address, self._buffer_size)
+
             self._last_method = \
                 BufferedMethod(func) \
                     if name in self._buffered_methods \
@@ -107,6 +95,7 @@ class SocketServerProxy(object):
 
     def __del__(self):
         if self._last_method is not None:
-            self._last_method.__del__() # Jython won't call this destructor
+            if hasattr(self._last_method,'__del__'):
+                self._last_method.__del__() # Jython won't call this destructor
             self._last_method = None
             self._tcpCliSock.close()

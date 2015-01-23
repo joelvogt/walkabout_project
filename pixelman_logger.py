@@ -1,5 +1,4 @@
-# -*- coding:utf-8 -*-
-__author__ = u'Joël Vogt'
+
 from helpers.moduleslib import networked_function
 from helpers.datalib import InputStreamBuffer
 

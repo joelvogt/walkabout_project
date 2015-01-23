@@ -31,8 +31,7 @@ class Remote_Module_Binder(object):
     def __call__(self, func, buffered=False):
         def buffered_function(func):
             def onCall(params):
-                args, kwargs = params
-                return func(*args, **kwargs)#[func(*args, **kwargs) for args, kwargs in params]
+                return [func(*args, **kwargs) for args, kwargs in params]
             return onCall
         networked_func = func
         for adapter in self._adapters:
@@ -96,8 +95,8 @@ class Socket_Module_Binder(Remote_Module_Binder):
                     frame = inputbuffer[0:inputbuffer._size]
                 else:
                     continue
-
                 args, kwargs = datalib.deserialize_data(frame)
+
                 try:
                     return_value = remote_function(*args, **kwargs)
                 except Exception as e:
