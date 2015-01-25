@@ -6,7 +6,7 @@ import time, sys, functools, cPickle, tempfile, zlib
 MESSAGE_HEADER = 'HDR'
 MESSAGE_HEADER_END = 'EOH' 
 HEADER_DELIMITER = '|'
-DEFAULT_BUFFER_SIZE = 16384
+DEFAULT_BUFFER_SIZE = 4096
 
 class AbstractIterator(object):
 
@@ -31,8 +31,8 @@ def __serialize_data_config():
 
     python_interpreters = dict(
         Jython = cPickle.dumps,
-        CPython = functools.partial(cPickle.dumps, protocol=0),
-        PyPy = functools.partial(cPickle.dumps, protocol=0)
+        CPython = functools.partial(cPickle.dumps, protocol=2),
+        PyPy = functools.partial(cPickle.dumps, protocol=2)
     )
     return compress(python_interpreters[sys.subversion[0]])
 
@@ -58,7 +58,7 @@ class InputStreamBuffer(object):
         if file_name is not None:
             self._fd = open(file_name, 'w')
         else:
-            self._fd = tempfile.TemporaryFile()
+            self._fd = tempfile.SpooledTemporaryFile(bufsize=self._buffer_size)
         self._in_disk = [0, 0]
         self._size = 0
         if data:

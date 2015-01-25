@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 __author__ = u'Joël Vogt'
 import socket
-import multiprocessing
+import multiprocessing, cPickle
 
 from adapters import numpy_adapters as npa, base
 from helpers import datalib
@@ -54,6 +54,7 @@ class Socket_Module_Binder(Remote_Module_Binder):
         Remote_Module_Binder.__init__(self, hostname, port, buffer_size, adapters=adapters)
         self._remote_functions = []
         self._tcpSerSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self._tcpSerSock.setsockopt( socket.SOL_SOCKET, socket.SO_REUSEADDR, 1 )
         self._tcpSerSock.bind((self._hostname, self._port))
         self._tcpSerSock.listen(50)
         self._ready = True
@@ -96,7 +97,6 @@ class Socket_Module_Binder(Remote_Module_Binder):
                 else:
                     continue
                 args, kwargs = datalib.deserialize_data(frame)
-
                 try:
                     return_value = remote_function(*args, **kwargs)
                 except Exception as e:
