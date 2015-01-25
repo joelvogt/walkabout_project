@@ -23,12 +23,12 @@ CLIENTS = [
     'PyPy'
 ]
 
-parent_directory = '.'
+parent_directory = ''
 for directory in TEMP_FOLDER.split('/'):
-    directory = '%s/%s' % (parent_directory, directory)
-    if not os._exists(directory):
+    directory = '%s%s' % (parent_directory, directory)
+    if not os.path.exists(directory):
         os.mkdir(directory)
-        parent_directory = directory
+        parent_directory = '%s/' % directory
 
 def process_wrapper(func, args_queue):
     while True:
