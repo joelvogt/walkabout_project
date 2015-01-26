@@ -8,7 +8,6 @@ from threading import Thread
 from Queue import Queue, Empty
 from collections import deque
 from atexit import register
-from tempfile import NamedTemporaryFile
 
 import os, time
 
@@ -28,7 +27,7 @@ for directory in TEMP_FOLDER.split('/'):
     directory = '%s%s' % (parent_directory, directory)
     if not os.path.exists(directory):
         os.mkdir(directory)
-        parent_directory = '%s/' % directory
+    parent_directory = '%s/' % directory
 
 def process_wrapper(func, args_queue):
     while True:
