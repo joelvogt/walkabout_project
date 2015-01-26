@@ -64,6 +64,31 @@ class BufferedMethod(object):
             self._func(datalib.serialize_data(args))
 
 
+def remote_function(function_ref, tcp_client_socket, buffer_size, serialized):
+    message = '%(header)s%(delimiter)s%(function_ref)d%(delimiter)s%(message_length)d%(delimiter)s%(header_end)s%(message)s' % dict(
+        header=datalib.MESSAGE_HEADER,
+        function_ref=function_ref,
+        message_length=len(serialized),
+        message=serialized,
+        delimiter=datalib.HEADER_DELIMITER,
+        header_end=datalib.MESSAGE_HEADER_END)
+
+    tcp_client_socket.send(message)
+    return_values = datalib.deserialize_data(tcp_client_socket.recv(buffer_size))
+    if isinstance(return_values, Exception):
+        raise return_values
+    else:
+        return return_values
+
+
+def serialized_arguments(func):
+    def on_call(*args, **kwargs):
+        return func(datalib.serialize_data((args, kwargs)))
+
+    return on_call
+
+
+
 class SocketServerProxy(object):
     def __init__(self, hostname, port, buffer_size, unbuffered_methods, buffered_methods=None):
         if not buffered_methods:
@@ -81,22 +106,7 @@ class SocketServerProxy(object):
 
 
     def __getattr__(self, name):
-        def remote_function(function_ref, tcp_client_socket, buffer_size, serialized):
 
-            message = '%(header)s%(delimiter)s%(function_ref)d%(delimiter)s%(message_length)d%(delimiter)s%(header_end)s%(message)s' % dict(
-                header=datalib.MESSAGE_HEADER,
-                function_ref=function_ref,
-                message_length=len(serialized),
-                message=serialized,
-                delimiter=datalib.HEADER_DELIMITER,
-                header_end=datalib.MESSAGE_HEADER_END)
-
-            tcp_client_socket.send(message)
-            return_values = datalib.deserialize_data(tcp_client_socket.recv(buffer_size))
-            if isinstance(return_values, Exception):
-                raise return_values
-            else:
-                return return_values
 
 
         if name != self._last_method_name:
@@ -106,12 +116,6 @@ class SocketServerProxy(object):
             if name in self._buffered_methods:
                 self._last_method = BufferedMethod(func)
             else:
-                def serialized_arguments(func):
-                    def on_call(*args, **kwargs):
-                        return func(datalib.serialize_data((args, kwargs)))
-
-                    return on_call
-
                 self._last_method = serialized_arguments(func)
         return self._last_method
 
