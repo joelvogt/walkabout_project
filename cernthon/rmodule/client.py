@@ -2,15 +2,17 @@
 __author__ = u'Joël Vogt'
 import functools
 import socket
-
-TEMP_FOLDER = 'var/tmp'
-from cernthon.helpers import datalib
 from threading import Thread
 from Queue import Queue, Empty
 from collections import deque
 from atexit import register
+import time
+import tempfile
+import shutil
 
-import os, time
+from cernthon.helpers import datalib
+import os
+
 
 BUFFER_SIZE = 8192
 TERMINATE_FUNCTION = 0
@@ -23,12 +25,7 @@ CLIENTS = [
     'PyPy'
 ]
 
-parent_directory = ''
-for directory in TEMP_FOLDER.split('/'):
-    directory = '%s%s' % (parent_directory, directory)
-    if not os.path.exists(directory):
-        os.mkdir(directory)
-    parent_directory = '%s/' % directory
+
 
 
 def process_wrapper(func, args_queue):
@@ -51,6 +48,7 @@ class BufferedMethod(object):
         self._buffer_size = 0
         self._network_func = Thread(target=process_wrapper, args=(func, self._args_queue))
         self._network_func.start()
+        self._temp_dir = tempfile.mkdtemp()
 
     def __call__(self, *args, **kwargs):
         self._buffer.append((args, kwargs))
@@ -59,7 +57,7 @@ class BufferedMethod(object):
             args = ((self._buffer,), {})
             serialized = datalib.serialize_data(args)
             self._buffer = deque()
-            file_name = '%s/buffer-%f.tmp' % (TEMP_FOLDER, time.time())
+            file_name = os.path.join(self._temp_dir, 'buffer-%f.tmp' % time.time())
             fd = open(file_name, 'w')
             fd.write(serialized)
             fd.flush()
@@ -70,11 +68,12 @@ class BufferedMethod(object):
 
     def __del__(self):
         self._network_func.join()
+        print 'deleting'
         if self._buffer_size > 0:
             args = ((self._buffer,), {})
             self._func(datalib.serialize_data(args))
-        for temp_file in filter(lambda x: x[-3:] == 'tmp', os.listdir(TEMP_FOLDER)):
-            os.remove('%s/%s' % (TEMP_FOLDER, temp_file))
+            del self._buffer
+        shutil.rmtree(self._temp_dir)
 
 
 class SocketServerProxy(object):
@@ -115,7 +114,7 @@ class SocketServerProxy(object):
         if name != self._last_method_name:
             self._last_method_name = name
             func = functools.partial(remote_function, self._methods_registry.index(name), self._tcpCliSock,
-                                     self._server_address, self._buffer_size)
+                                     self._buffer_size)
             if name in self._buffered_methods:
                 self._last_method = BufferedMethod(func)
             else:
