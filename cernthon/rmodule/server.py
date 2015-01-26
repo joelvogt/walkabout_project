@@ -81,13 +81,13 @@ class SocketModuleBinder(RemoteModuleBinder):
             total_data_size = 0
             remote_function = None
             while True:
-                datagram = tcp_client_socket.recv(self._buffer_size)
-                if not datagram:
+                message = tcp_client_socket.recv(self._buffer_size)
+                if not message:
                     break
                 if not remote_function:
-                    if datagram[:3] != datalib.MESSAGE_HEADER:
+                    if message[:3] != datalib.MESSAGE_HEADER:
                         raise ReferenceError('Message does not contain header information and a function reference')
-                    header, message = datagram.split('%(delimiter)s%(header_end)s' % dict(
+                    header, message = message.split('%(delimiter)s%(header_end)s' % dict(
                         delimiter=datalib.HEADER_DELIMITER,
                         header_end=datalib.MESSAGE_HEADER_END))
                     header, function, message_length = header.split(datalib.HEADER_DELIMITER)
@@ -95,7 +95,7 @@ class SocketModuleBinder(RemoteModuleBinder):
                     total_data_size = int(message_length)
                     input_buffer = datalib.InputStreamBuffer(message)
                 else:
-                    input_buffer.extend(datagram)
+                    input_buffer.extend(message)
                 if total_data_size < input_buffer.size:
                     raise OverflowError(
                         'The size {0} is longer than the expected message size {1}'.format(input_buffer.size,
