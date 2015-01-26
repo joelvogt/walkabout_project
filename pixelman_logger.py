@@ -1,17 +1,15 @@
 from cernthon.helpers.moduleslib import networked_function
-from cernthon.helpers.datalib import InputStreamBuffer
 
 logfile = None
 
 
 @networked_function(buffered=False)
-def open(filename):
+def save_file(filename):
     global logfile
-    logfile = InputStreamBuffer(file_name=filename)
+    logfile = open(filename, 'w')
 
 
 @networked_function(buffered=True)
 def write(event):
     global logfile
-
-    logfile.extend(event)
+    logfile.write(event)

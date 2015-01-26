@@ -36,7 +36,6 @@ def process_wrapper(func, args_queue):
             func(fd.read(size))
             fd.close()
         except Empty:
-
             break
 
 
@@ -67,7 +66,6 @@ class BufferedMethod(object):
             self._args_queue.put((size, file_name))
 
     def __del__(self):
-        print 'deleting'
         self._network_func.join()
         if self._buffer_size > 0:
             args = ((self._buffer,), {})
@@ -128,6 +126,7 @@ class SocketServerProxy(object):
         return self._last_method
 
     def __del__(self):
+        print 'end'
         if self._last_method is not None:
             if hasattr(self._last_method, '__del__'):
                 self._last_method.__del__()  # Jython won't call this destructor
