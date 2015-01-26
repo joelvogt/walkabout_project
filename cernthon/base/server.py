@@ -1,5 +1,4 @@
 # -*- coding:utf-8 -*-
-import cernthon
 
 __author__ = u'Joël Vogt'
 import imp
@@ -10,6 +9,7 @@ from multiprocessing import Process
 import os
 
 from cernthon.rmodule.server import SocketModuleBinder
+from cernthon.rmodule import client
 
 
 MODULES_BINDER_REGISTRY = [
@@ -28,7 +28,7 @@ class Modules_Directory_Service(object):
         self._do_run = True
         self._modules = modules
         self._server = SimpleXMLRPCServer((hostname, port), allow_none=True)
-        self._modules_processes = map(lambda x: {}, cernthon.rmodule.client.CLIENTS)
+        self._modules_processes = map(lambda x: {}, client.CLIENTS)
         try:
             self._hostname = socket.gethostbyname(socket.gethostname())
         except socket.gaierror:
