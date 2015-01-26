@@ -6,10 +6,11 @@ logfile = None
 @networked_function(buffered=False)
 def save_file(filename):
     global logfile
-    logfile = open(filename, 'w')
+    logfile = open(filename, 'w', buffering=2048)
 
 
 @networked_function(buffered=True)
 def write(event):
     global logfile
     logfile.write(event)
+

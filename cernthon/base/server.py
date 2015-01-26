@@ -43,8 +43,8 @@ class ModulesDirectoryService(object):
             module.networked_function.functions_registry = []
             module_binder_process = Process(target=module_binder_instance.run, name=module_name)
             modules_processes[module_client][module_name] = [module_binder_process,
-                                                      module_binder_instance.connection_information(),
-                                                      os.path.getmtime(self._modules[module_name]['file'])]
+                                                             module_binder_instance.connection_information(),
+                                                             os.path.getmtime(self._modules[module_name]['file'])]
             module_binder_process.start()
 
         if module_name not in self._modules:

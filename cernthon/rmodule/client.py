@@ -6,15 +6,13 @@ from threading import Thread
 from Queue import Queue, Empty
 from collections import deque
 from atexit import register
-import time
 import tempfile
-import shutil
 
 from cernthon.helpers import datalib
 import os
 
 
-BUFFER_SIZE = 2048
+BUFFER_SIZE = 512
 TERMINATE_FUNCTION = 0
 CONTINUE_FUNCTION = 1
 
@@ -26,15 +24,12 @@ CLIENTS = [
 ]
 
 
-
-
-def process_wrapper(func, args_queue):
+def process_wrapper(func, buffer_file, args_queue):
+    fd = open(buffer_file, os.O_NONBLOCK)
     while True:
         try:
-            size, file_name = args_queue.get(timeout=1)
-            fd = open(file_name, 'r')
+            size = args_queue.get(timeout=1)
             func(fd.read(size))
-            fd.close()
         except Empty:
             break
 
@@ -45,9 +40,9 @@ class BufferedMethod(object):
         self._buffer = deque()
         self._func = func
         self._buffer_size = 0
-        self._network_func = Thread(target=process_wrapper, args=(func, self._args_queue))
+        self._temp_file = tempfile.NamedTemporaryFile()
+        self._network_func = Thread(target=process_wrapper, args=(func, self._temp_file.name, self._args_queue))
         self._network_func.start()
-        self._temp_dir = tempfile.mkdtemp()
 
     def __call__(self, *args, **kwargs):
         self._buffer.append((args, kwargs))
@@ -56,22 +51,17 @@ class BufferedMethod(object):
             args = ((self._buffer,), {})
             serialized = datalib.serialize_data(args)
             self._buffer = deque()
-            file_name = os.path.join(self._temp_dir, 'buffer-%f.tmp' % time.time())
-            fd = open(file_name, 'w')
-            fd.write(serialized)
-            fd.flush()
-            fd.close()
+            self._temp_file.write(serialized)
+            self._temp_file.flush()
             self._buffer_size = 0
             size = len(serialized)
-            self._args_queue.put((size, file_name))
+            self._args_queue.put(size)
 
     def __del__(self):
         self._network_func.join()
         if self._buffer_size > 0:
             args = ((self._buffer,), {})
             self._func(datalib.serialize_data(args))
-            del self._buffer
-        shutil.rmtree(self._temp_dir)
 
 
 class SocketServerProxy(object):
