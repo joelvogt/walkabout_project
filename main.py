@@ -3,7 +3,7 @@
 import ConfigParser
 
 from cernthon.helpers.datalib import string_to_int
-from cernthon.base.server import Modules_Directory_Service
+from cernthon.base.server import ModulesDirectoryService
 
 
 config_options = dict(
@@ -27,7 +27,7 @@ config_options = dict(
 
 if __name__ == '__main__':
     config = ConfigParser.ConfigParser()
-    config.read('networkmodulesservice.config')
+    config.read('cernthon_server.config')
     params = {}
     for key, value in sorted(
             [
@@ -45,5 +45,5 @@ if __name__ == '__main__':
             params[key] = value
         else:
             params[key].update(value)
-    directory = Modules_Directory_Service(modules=params['module'], **params['directory_service'])
-    directory.onStart()
+    directory = ModulesDirectoryService(modules=params['module'], **params['directory_service'])
+    directory.on_start()

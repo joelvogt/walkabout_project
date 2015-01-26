@@ -6,8 +6,8 @@ from SimpleXMLRPCServer import SimpleXMLRPCServer
 import socket
 import pprint
 from multiprocessing import Process
-import os
 
+import os
 from cernthon.rmodule.server import SocketModuleBinder
 from cernthon.rmodule import client
 
@@ -20,7 +20,7 @@ MODULES_BINDER_REGISTRY = [
 ]
 
 
-class Modules_Directory_Service(object):
+class ModulesDirectoryService(object):
     def __init__(self, hostname='localhost', port=9000, modules=None):
         if not modules:
             modules = {}
@@ -62,7 +62,7 @@ class Modules_Directory_Service(object):
             bind_module(self._modules_processes, module_binder_instance, self._modules[module_name])
         return self._modules_processes[client][module_name][1]
 
-    def onStart(self):
+    def on_start(self):
         pprint.pprint('Modules Directory Service {0}:{1}'.format(self._hostname, self._next_port))
         try:
             self._server.serve_forever()
