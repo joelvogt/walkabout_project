@@ -9,10 +9,8 @@ from cernthon.helpers import datalib
 
 
 class RemoteModuleBinder(object):
-    def __init__(self, hostname, port, buffer_size=None, adapters=None):
-        if not adapters:
-            adapters = [npa.numpy_to_xmlrpc]
-        self._adapters = adapters
+    def __init__(self, hostname, port, buffer_size):
+
         self._buffered_methods = []
         self._unbuffered_methods = []
         self._hostname = hostname
@@ -48,26 +46,17 @@ class RemoteModuleBinder(object):
             self._unbuffered_methods.append(buffered_func.__name__)
         self._register_function(networked_func, name=buffered_func.__name__)
 
-    def reset(self):
-        self._unbuffered_methods = []
-        self._buffered_methods = []
-
 
 class SocketModuleBinder(RemoteModuleBinder):
-    def __init__(self, hostname, port, buffer_size=datalib.DEFAULT_BUFFER_SIZE, adapters=None):
-        if not adapters:
-            adapters = [npa.numpy_to_xmlrpc]
-        RemoteModuleBinder.__init__(self, hostname, port, buffer_size, adapters=adapters)
+    def __init__(self, hostname, port, buffer_size=datalib.DEFAULT_BUFFER_SIZE, adapters=[npa.numpy_to_xmlrpc]):
+        RemoteModuleBinder.__init__(self, hostname, port, buffer_size)
+        self._adapters = adapters
         self._remote_functions = []
         self._tcpSerSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._tcpSerSock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self._tcpSerSock.bind((self._hostname, self._port))
         self._tcpSerSock.listen(50)
         self._ready = True
-
-    def reset(self):
-        RemoteModuleBinder.reset(self)
-        self._remote_functions = []
 
     def _register_function(self, func, name):
         self._remote_functions.append(func)
