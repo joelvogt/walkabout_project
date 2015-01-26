@@ -66,7 +66,7 @@ class InputStreamBuffer(object):
         else:
             self._fd = tempfile.SpooledTemporaryFile(bufsize=self._buffer_size)
         self._in_disk = [0, 0]
-        self._size = 0
+        self.size = 0
         if data:
             self.extend(data)
 
@@ -77,22 +77,22 @@ class InputStreamBuffer(object):
         if i >= 0:
             return self._in_disk[0] + i
         else:
-            return self._size + i
+            return self.size + i
 
     def extend(self, data):
-        self._fd.seek(self._in_disk[0] + self._size)
+        self._fd.seek(self._in_disk[0] + self.size)
 
         self._fd.write(data)
         self._fd.flush()
 
-        self._size += len(data)
+        self.size += len(data)
 
     def __getitem__(self, i):
         self._fd.seek(self.__adjust_memory_pointers(i))
         return self._fd.read(1)
 
     def trim(self, position):
-        self._size -= abs(position)
+        self.size -= abs(position)
         # self.data = self.data[position:] if position >= 0 else self.data[:position]
         if position >= 0:
             self._in_disk[0] += position

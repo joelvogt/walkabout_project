@@ -94,7 +94,7 @@ class SocketServerProxy(object):
 
 
     def __getattr__(self, name):
-        def remote_function(function_ref, tcpCliSock, server_address, buffer_size, serialized):
+        def remote_function(function_ref, tcpCliSock, buffer_size, serialized):
 
             message = '%(header)s%(delimiter)s%(function_ref)d%(delimiter)s%(message_length)d%(delimiter)s%(header_end)s%(message)s' % dict(
                 header=datalib.MESSAGE_HEADER,
