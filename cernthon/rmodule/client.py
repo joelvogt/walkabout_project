@@ -94,7 +94,7 @@ class SocketServerProxy(object):
 
 
     def __getattr__(self, name):
-        def remote_function(function_ref, tcpCliSock, buffer_size, serialized):
+        def remote_function(function_ref, tcp_client_socket, buffer_size, serialized):
 
             message = '%(header)s%(delimiter)s%(function_ref)d%(delimiter)s%(message_length)d%(delimiter)s%(header_end)s%(message)s' % dict(
                 header=datalib.MESSAGE_HEADER,
@@ -104,8 +104,8 @@ class SocketServerProxy(object):
                 delimiter=datalib.HEADER_DELIMITER,
                 header_end=datalib.MESSAGE_HEADER_END)
 
-            tcpCliSock.send(message)
-            return_values = datalib.deserialize_data(tcpCliSock.recv(buffer_size))
+            tcp_client_socket.send(message)
+            return_values = datalib.deserialize_data(tcp_client_socket.recv(buffer_size))
             if isinstance(return_values, Exception):
                 raise return_values
             else:
@@ -120,10 +120,10 @@ class SocketServerProxy(object):
                 self._last_method = BufferedMethod(func)
             else:
                 def serialized_arguments(func):
-                    def onCall(*args, **kwargs):
+                    def on_call(*args, **kwargs):
                         return func(datalib.serialize_data((args, kwargs)))
 
-                    return onCall
+                    return on_call
 
                 self._last_method = serialized_arguments(func)
         return self._last_method

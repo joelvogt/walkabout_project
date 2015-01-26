@@ -8,9 +8,11 @@ from cernthon.adapters import base
 from cernthon.helpers import datalib
 
 
+DEFAULT_ADAPTERS = [npa.numpy_to_jython]
+
+
 class RemoteModuleBinder(object):
     def __init__(self, hostname, port, buffer_size):
-
         self._buffered_methods = []
         self._unbuffered_methods = []
         self._hostname = hostname
@@ -48,7 +50,7 @@ class RemoteModuleBinder(object):
 
 
 class SocketModuleBinder(RemoteModuleBinder):
-    def __init__(self, hostname, port, buffer_size=datalib.DEFAULT_BUFFER_SIZE, adapters=[npa.numpy_to_xmlrpc]):
+    def __init__(self, hostname, port, buffer_size=datalib.DEFAULT_BUFFER_SIZE, adapters=DEFAULT_ADAPTERS):
         RemoteModuleBinder.__init__(self, hostname, port, buffer_size)
         self._adapters = adapters
         self._remote_functions = []

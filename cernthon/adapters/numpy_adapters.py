@@ -4,7 +4,7 @@ __author__ = u'Joël Vogt'
 import numpy
 
 
-def numpy_to_xmlrpc(value):
+def numpy_to_jython(value):
     def map_value(value):
         if type(value) == numpy.ndarray:
             return value.tolist()

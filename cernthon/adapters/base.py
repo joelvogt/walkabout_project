@@ -3,7 +3,7 @@ __author__ = u'Joël Vogt'
 
 
 def function_adapter_mapper(func, adapter):
-    def onCall(*args, **kwargs):
+    def on_call(*args, **kwargs):
         return adapter(func(*args, **kwargs))
 
-    return onCall
+    return on_call

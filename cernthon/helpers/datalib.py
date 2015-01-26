@@ -29,10 +29,10 @@ def slice_evenly(arr, slice_size):
 
 def __serialize_data_config():
     def compress(func):
-        def onCall(data):
+        def on_call(data):
             return zlib.compress(func(data))
 
-        return onCall
+        return on_call
 
     python_interpreters = dict(
         Jython=cPickle.dumps,
@@ -44,10 +44,10 @@ def __serialize_data_config():
 
 def __deserialize_data_config():
     def decompress(func):
-        def onCall(data):
+        def on_call(data):
             return func(zlib.decompress(data))
 
-        return onCall
+        return on_call
 
     return decompress(cPickle.loads)
 
@@ -100,6 +100,6 @@ class InputStreamBuffer(object):
     def __getslice__(self, i, j):
         i = self.__adjust_memory_pointers(i)
         j = self.__adjust_memory_pointers(j)
-        slice = j - i
+        file_slice = j - i
         self._fd.seek(i)
-        return self._fd.read(slice)
+        return self._fd.read(file_slice)
