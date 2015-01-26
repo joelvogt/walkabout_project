@@ -1,41 +1,34 @@
-#-*- coding:utf-8 -*-
-from helpers.moduleslib import networked_function
+# -*- coding:utf-8 -*-
+import cernthon
 
 __author__ = u'Joël Vogt'
-from rmodule.server import Socket_Module_Binder
-
-
-
 import imp
-
 from SimpleXMLRPCServer import SimpleXMLRPCServer
 import socket
 import pprint
 from multiprocessing import Process
-import rmodule.client
 import os
 
-
-
-
+from cernthon.rmodule.server import SocketModuleBinder
 
 
 MODULES_BINDER_REGISTRY = [
     # XMLRPC_Node,
-    Socket_Module_Binder,
-    Socket_Module_Binder,
-    Socket_Module_Binder
+    SocketModuleBinder,
+    SocketModuleBinder,
+    SocketModuleBinder
 ]
 
 
 class Modules_Directory_Service(object):
-
-    def __init__(self, hostname='localhost', port=9000, modules={}):
+    def __init__(self, hostname='localhost', port=9000, modules=None):
+        if not modules:
+            modules = {}
         self._next_port = port
         self._do_run = True
         self._modules = modules
         self._server = SimpleXMLRPCServer((hostname, port), allow_none=True)
-        self._modules_processes = map(lambda x:{}, rmodule.client.CLIENTS)
+        self._modules_processes = map(lambda x: {}, cernthon.rmodule.client.CLIENTS)
         try:
             self._hostname = socket.gethostbyname(socket.gethostname())
         except socket.gaierror:
@@ -49,7 +42,9 @@ class Modules_Directory_Service(object):
             map(lambda x: module_binder_instance(*x), module.networked_function.functions_registry)
             module.networked_function.functions_registry = []
             module_binder_process = Process(target=module_binder_instance.run, name=module_name)
-            modules_processes[client][module_name] = [module_binder_process, module_binder_instance.connection_information(), os.path.getmtime(self._modules[module_name]['file'])]
+            modules_processes[client][module_name] = [module_binder_process,
+                                                      module_binder_instance.connection_information(),
+                                                      os.path.getmtime(self._modules[module_name]['file'])]
             module_binder_process.start()
 
         if module_name not in self._modules:

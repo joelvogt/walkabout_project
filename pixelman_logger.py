@@ -1,8 +1,8 @@
+from cernthon.helpers.moduleslib import networked_function
+from cernthon.helpers.datalib import InputStreamBuffer
 
-from helpers.moduleslib import networked_function
-from helpers.datalib import InputStreamBuffer
+logfile = None
 
-logfile=None
 
 @networked_function(buffered=False)
 def open(filename):

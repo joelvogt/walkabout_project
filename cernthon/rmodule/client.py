@@ -2,8 +2,9 @@
 __author__ = u'Joël Vogt'
 import functools
 import socket
+
 TEMP_FOLDER = 'var/tmp'
-from helpers import datalib
+from cernthon.helpers import datalib
 from threading import Thread
 from Queue import Queue, Empty
 from collections import deque
@@ -29,10 +30,11 @@ for directory in TEMP_FOLDER.split('/'):
         os.mkdir(directory)
     parent_directory = '%s/' % directory
 
+
 def process_wrapper(func, args_queue):
     while True:
         try:
-            size, file_name= args_queue.get(timeout=1)
+            size, file_name = args_queue.get(timeout=1)
             fd = open(file_name, 'r')
             func(fd.read(size))
             fd.close()
@@ -42,7 +44,6 @@ def process_wrapper(func, args_queue):
 
 
 class BufferedMethod(object):
-
     def __init__(self, func):
         self._args_queue = Queue()
         self._buffer = deque()
@@ -76,9 +77,10 @@ class BufferedMethod(object):
             os.remove('%s/%s' % (TEMP_FOLDER, temp_file))
 
 
-
 class SocketServerProxy(object):
-    def __init__(self, hostname, port, buffer_size, unbuffered_methods, buffered_methods=[]):
+    def __init__(self, hostname, port, buffer_size, unbuffered_methods, buffered_methods=None):
+        if not buffered_methods:
+            buffered_methods = []
         self._methods_cache = {}
         self._server_address = (hostname, port)
         self._buffer_size = buffer_size
@@ -88,7 +90,7 @@ class SocketServerProxy(object):
         self._methods_registry = unbuffered_methods + buffered_methods
         self._tcpCliSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._tcpCliSock.connect(self._server_address)
-        register(self.__del__) # Jython won't call this destructor
+        register(self.__del__)  # Jython won't call this destructor
 
 
     def __getattr__(self, name):
@@ -117,16 +119,18 @@ class SocketServerProxy(object):
             if name in self._buffered_methods:
                 self._last_method = BufferedMethod(func)
             else:
-                def serliazed_arguments(func):
+                def serialized_arguments(func):
                     def onCall(*args, **kwargs):
                         return func(datalib.serialize_data((args, kwargs)))
+
                     return onCall
-                self._last_method = serliazed_arguments(func)
+
+                self._last_method = serialized_arguments(func)
         return self._last_method
 
     def __del__(self):
         if self._last_method is not None:
-            if hasattr(self._last_method,'__del__'):
-                self._last_method.__del__() # Jython won't call this destructor
+            if hasattr(self._last_method, '__del__'):
+                self._last_method.__del__()  # Jython won't call this destructor
             self._last_method = None
             self._tcpCliSock.close()

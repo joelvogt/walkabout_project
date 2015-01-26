@@ -1,38 +1,43 @@
-#-*- coding:utf-8 -*-
+# -*- coding:utf-8 -*-
 __author__ = u'Joël Vogt'
-import time, sys, functools, cPickle, tempfile, zlib
+import sys
+import functools
+import cPickle
+import tempfile
+import zlib
 
 
 MESSAGE_HEADER = 'HDR'
-MESSAGE_HEADER_END = 'EOH' 
+MESSAGE_HEADER_END = 'EOH'
 HEADER_DELIMITER = '|'
 DEFAULT_BUFFER_SIZE = 4096
 
-class AbstractIterator(object):
 
+class AbstractIterator(object):
     def __init__(self, values):
         self._values = values
 
 
-def string_to_int(value): return int(value) if '.' not in value and ord(value[0]) >= ord('0') and ord(value[0]) <= ord('9') else value
+def string_to_int(value): return int(value) if '.' not in value and ord('0') <= ord(value[0]) <= ord(
+    '9') else value
 
 
-def slice_evenly(arr,slice_size):
-    for i in xrange(0,len(arr),slice_size):
-        yield arr[i:i+slice_size]
-
+def slice_evenly(arr, slice_size):
+    for i in xrange(0, len(arr), slice_size):
+        yield arr[i:i + slice_size]
 
 
 def __serialize_data_config():
     def compress(func):
         def onCall(data):
             return zlib.compress(func(data))
+
         return onCall
 
     python_interpreters = dict(
-        Jython = cPickle.dumps,
-        CPython = functools.partial(cPickle.dumps, protocol=2),
-        PyPy = functools.partial(cPickle.dumps, protocol=2)
+        Jython=cPickle.dumps,
+        CPython=functools.partial(cPickle.dumps, protocol=2),
+        PyPy=functools.partial(cPickle.dumps, protocol=2)
     )
     return compress(python_interpreters[sys.subversion[0]])
 
@@ -41,12 +46,13 @@ def __deserialize_data_config():
     def decompress(func):
         def onCall(data):
             return func(zlib.decompress(data))
+
         return onCall
+
     return decompress(cPickle.loads)
 
 
 serialize_data = __serialize_data_config()
-
 
 deserialize_data = __deserialize_data_config()
 

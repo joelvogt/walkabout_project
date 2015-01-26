@@ -1,7 +1,8 @@
-#-*- coding:utf-8 -*-
+# -*- coding:utf-8 -*-
 __author__ = u'Joël Vogt'
 
 import numpy
+
 
 def numpy_to_xmlrpc(value):
     def map_value(value):

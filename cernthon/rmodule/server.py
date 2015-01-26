@@ -1,14 +1,18 @@
 # -*- coding:utf-8 -*-
+
 __author__ = u'Joël Vogt'
 import socket
-import multiprocessing, cPickle
+import multiprocessing
 
-from adapters import numpy_adapters as npa, base
-from helpers import datalib
+from cernthon.adapters import numpy_adapters as npa
+from cernthon.adapters import base
+from cernthon.helpers import datalib
 
 
 class Remote_Module_Binder(object):
-    def __init__(self, hostname, port, buffer_size=None, adapters=[npa.numpy_to_xmlrpc]):
+    def __init__(self, hostname, port, buffer_size=None, adapters=None):
+        if not adapters:
+            adapters = [npa.numpy_to_xmlrpc]
         self._adapters = adapters
         self._buffered_methods = []
         self._unbuffered_methods = []
@@ -17,12 +21,12 @@ class Remote_Module_Binder(object):
         self._buffer_size = buffer_size
 
     def connection_information(self):
-        return self._hostname,\
-               self._port,\
-               self._buffer_size,\
+        return self._hostname, \
+               self._port, \
+               self._buffer_size, \
                dict(
-                unbuffered_methods=self._unbuffered_methods,
-                buffered_methods=self._buffered_methods
+                   unbuffered_methods=self._unbuffered_methods,
+                   buffered_methods=self._buffered_methods
                )
 
     def _register_function(self, func, name):
@@ -32,7 +36,9 @@ class Remote_Module_Binder(object):
         def buffered_function(func):
             def onCall(params):
                 return [func(*args, **kwargs) for args, kwargs in params]
+
             return onCall
+
         networked_func = func
         for adapter in self._adapters:
             networked_func = base.function_adapter_mapper(networked_func, adapter)
@@ -48,19 +54,20 @@ class Remote_Module_Binder(object):
         self._buffered_methods = []
 
 
-class Socket_Module_Binder(Remote_Module_Binder):
-
-    def __init__(self, hostname, port, buffer_size=datalib.DEFAULT_BUFFER_SIZE, adapters=[npa.numpy_to_xmlrpc]):
+class SocketModuleBinder(Remote_Module_Binder):
+    def __init__(self, hostname, port, buffer_size=datalib.DEFAULT_BUFFER_SIZE, adapters=None):
+        if not adapters:
+            adapters = [npa.numpy_to_xmlrpc]
         Remote_Module_Binder.__init__(self, hostname, port, buffer_size, adapters=adapters)
         self._remote_functions = []
         self._tcpSerSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self._tcpSerSock.setsockopt( socket.SOL_SOCKET, socket.SO_REUSEADDR, 1 )
+        self._tcpSerSock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self._tcpSerSock.bind((self._hostname, self._port))
         self._tcpSerSock.listen(50)
         self._ready = True
 
     def reset(self):
-        Remote_Module_Binder.reset()
+        Remote_Module_Binder.reset(self)
         self._remote_functions = []
 
     def _register_function(self, func, name):
@@ -83,7 +90,7 @@ class Socket_Module_Binder(Remote_Module_Binder):
                         raise ReferenceError('Message does not contain header information and a function reference')
                     header, message = datagram.split('%(delimiter)s%(header_end)s' % dict(
                         delimiter=datalib.HEADER_DELIMITER,
-                        header_end = datalib.MESSAGE_HEADER_END))
+                        header_end=datalib.MESSAGE_HEADER_END))
                     header, function, message_length = header.split(datalib.HEADER_DELIMITER)
                     remote_function = self._remote_functions[int(function)]
                     total_data_size = int(message_length)
@@ -91,7 +98,9 @@ class Socket_Module_Binder(Remote_Module_Binder):
                 else:
                     inputbuffer.extend(datagram)
                 if total_data_size < inputbuffer._size:
-                    raise OverflowError('The size {0} is longer than the expected message size {1}'.format(inputbuffer._size, total_data_size))
+                    raise OverflowError(
+                        'The size {0} is longer than the expected message size {1}'.format(inputbuffer._size,
+                                                                                           total_data_size))
                 elif total_data_size == inputbuffer._size:
                     frame = inputbuffer[0:inputbuffer._size]
                 else:

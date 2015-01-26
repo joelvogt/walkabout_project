@@ -1,13 +1,14 @@
-#-*-coding:utf-8 *-
+# -*-coding:utf-8 *-
 __author__ = u'Joël Vogt'
-from rmodule.client import SocketServerProxy, CLIENTS
+import xmlrpclib
+import sys
 
-import xmlrpclib, sys
-
+from cernthon.rmodule.client import SocketServerProxy, CLIENTS
 
 
 def import_module(module_name, directory_service_hostname='127.0.0.1', port=9000):
-    modules_directory_service = xmlrpclib.ServerProxy('http://%s:%d' % (directory_service_hostname, port), allow_none=True)
+    modules_directory_service = xmlrpclib.ServerProxy('http://%s:%d' % (directory_service_hostname, port),
+                                                      allow_none=True)
     module_server_hostname, port, buffer_size, methods = \
         modules_directory_service.import_module(
             module_name,
