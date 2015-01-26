@@ -13,4 +13,5 @@ def open(filename):
 @networked_function(buffered=True)
 def write(event):
     global logfile
+
     logfile.extend(event)

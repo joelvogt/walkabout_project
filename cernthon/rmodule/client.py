@@ -14,7 +14,7 @@ from cernthon.helpers import datalib
 import os
 
 
-BUFFER_SIZE = 8192
+BUFFER_SIZE = 2048
 TERMINATE_FUNCTION = 0
 CONTINUE_FUNCTION = 1
 
@@ -67,8 +67,8 @@ class BufferedMethod(object):
             self._args_queue.put((size, file_name))
 
     def __del__(self):
-        self._network_func.join()
         print 'deleting'
+        self._network_func.join()
         if self._buffer_size > 0:
             args = ((self._buffer,), {})
             self._func(datalib.serialize_data(args))
