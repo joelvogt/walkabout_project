@@ -24,7 +24,7 @@ CLIENTS = [
 ]
 
 
-def process_wrapper(func, buffer_file, args_queue):
+def _process_wrapper(func, buffer_file, args_queue):
     fd = open(buffer_file, os.O_NONBLOCK)
     while True:
         try:
@@ -41,7 +41,7 @@ class BufferedMethod(object):
         self._func = func
         self._buffer_size = 0
         self._temp_file = tempfile.NamedTemporaryFile()
-        self._network_func = Thread(target=process_wrapper, args=(func, self._temp_file.name, self._args_queue))
+        self._network_func = Thread(target=_process_wrapper, args=(func, self._temp_file.name, self._args_queue))
         self._network_func.start()
 
     def __call__(self, *args, **kwargs):
@@ -65,13 +65,21 @@ class BufferedMethod(object):
 
 
 def remote_function(function_ref, tcp_client_socket, buffer_size, serialized):
-    message = '%(header)s%(delimiter)s%(function_ref)d%(delimiter)s%(message_length)d%(delimiter)s%(header_end)s%(message)s' % dict(
-        header=datalib.MESSAGE_HEADER,
-        function_ref=function_ref,
-        message_length=len(serialized),
-        message=serialized,
-        delimiter=datalib.HEADER_DELIMITER,
-        header_end=datalib.MESSAGE_HEADER_END)
+    message = '%(header)s' \
+              '%(delimiter)s' \
+              '%(function_ref)d' \
+              '%(delimiter)s' \
+              '%(message_length)d' \
+              '%(delimiter)s' \
+              '%(header_end)s' \
+              '%(message)s' % \
+              dict(
+                  header=datalib.MESSAGE_HEADER,
+                  function_ref=function_ref,
+                  message_length=len(serialized),
+                  message=serialized,
+                  delimiter=datalib.HEADER_DELIMITER,
+                  header_end=datalib.MESSAGE_HEADER_END)
 
     tcp_client_socket.send(message)
     return_values = datalib.deserialize_data(tcp_client_socket.recv(buffer_size))
@@ -86,7 +94,6 @@ def serialized_arguments(func):
         return func(datalib.serialize_data((args, kwargs)))
 
     return on_call
-
 
 
 class SocketServerProxy(object):
@@ -106,9 +113,6 @@ class SocketServerProxy(object):
 
 
     def __getattr__(self, name):
-
-
-
         if name != self._last_method_name:
             self._last_method_name = name
             func = functools.partial(remote_function, self._methods_registry.index(name), self._tcpCliSock,

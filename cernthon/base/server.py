@@ -35,7 +35,6 @@ class ModulesDirectoryService(object):
             self._hostname = hostname
         self._server.register_instance(self)
 
-
     def import_module(self, module_name, module_client=0):
         def bind_module(modules_processes, module_binder_instance, module_ref):
             module = imp.load_source(module_ref['name'], module_ref['file'])
@@ -48,7 +47,7 @@ class ModulesDirectoryService(object):
             module_binder_process.start()
 
         if module_name not in self._modules:
-            raise ImportError('Cannot find %s ' % module_name)
+            raise ImportError('Cannot find %s' % module_name)
         if module_name not in self._modules_processes[module_client]:
             self._next_port += 1
             module_binder_instance = MODULES_BINDER_REGISTRY[module_client](self._hostname, self._next_port)

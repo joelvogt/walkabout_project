@@ -13,11 +13,6 @@ HEADER_DELIMITER = '|'
 DEFAULT_BUFFER_SIZE = 4096
 
 
-class AbstractIterator(object):
-    def __init__(self, values):
-        self._values = values
-
-
 def string_to_int(value): return int(value) if '.' not in value and ord('0') <= ord(value[0]) <= ord(
     '9') else value
 
@@ -31,7 +26,6 @@ def __serialize_data_config():
     def compress(func):
         def on_call(data):
             return zlib.compress(func(data))
-
         return on_call
 
     python_interpreters = dict(
@@ -46,9 +40,7 @@ def __deserialize_data_config():
     def decompress(func):
         def on_call(data):
             return func(zlib.decompress(data))
-
         return on_call
-
     return decompress(cPickle.loads)
 
 
