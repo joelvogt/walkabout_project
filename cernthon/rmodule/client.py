@@ -9,10 +9,9 @@ from atexit import register
 import tempfile
 
 from cernthon.helpers import datalib
-import os
 
 
-BUFFER_SIZE = 512
+BUFFER_SIZE = 1024
 
 CLIENTS = [
     'default',
@@ -23,7 +22,7 @@ CLIENTS = [
 
 
 def _process_wrapper(func, buffer_file, args_queue):
-    fd = open(buffer_file, os.O_NONBLOCK)
+    fd = open(buffer_file)
     while True:
         try:
             size = args_queue.get(timeout=1)
@@ -60,6 +59,7 @@ class BufferedMethod(object):
         if self._buffer_size > 0:
             args = ((self._buffer,), {})
             self._func(datalib.serialize_data(args))
+            self._buffer_size = 0
 
 
 def remote_function(function_ref, tcp_client_socket, buffer_size, serialized):
@@ -107,6 +107,7 @@ class SocketServerProxy(object):
         self._methods_registry = unbuffered_methods + buffered_methods
         self._tcpCliSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._tcpCliSock.connect(self._server_address)
+
         register(self.__del__)  # Jython won't call this destructor
 
 
@@ -122,7 +123,6 @@ class SocketServerProxy(object):
         return self._last_method
 
     def __del__(self):
-        print 'end'
         if self._last_method is not None:
             if hasattr(self._last_method, '__del__'):
                 self._last_method.__del__()  # Jython won't call this destructor
