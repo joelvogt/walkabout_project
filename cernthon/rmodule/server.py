@@ -50,7 +50,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions):
 
 
 class SocketModuleBinder(object):
-    def __init__(self, hostname, port, buffer_size=datalib.DEFAULT_BUFFER_SIZE, adapters=DEFAULT_ADAPTERS):
+    def __init__(self, hostname, port, buffer_size=datalib.NETWORK_BUFFER_SIZE, adapters=DEFAULT_ADAPTERS):
         self._hostname = hostname
         self._port = port
         self._buffer_size = buffer_size

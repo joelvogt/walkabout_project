@@ -13,8 +13,6 @@ import os
 
 
 BUFFER_SIZE = 512
-TERMINATE_FUNCTION = 0
-CONTINUE_FUNCTION = 1
 
 CLIENTS = [
     'default',
