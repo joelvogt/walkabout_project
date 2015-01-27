@@ -26,6 +26,7 @@ def __serialize_data_config():
     def compress(func):
         def on_call(data):
             return zlib.compress(func(data))
+
         return on_call
 
     python_interpreters = dict(
@@ -40,7 +41,9 @@ def __deserialize_data_config():
     def decompress(func):
         def on_call(data):
             return func(zlib.decompress(data))
+
         return on_call
+
     return decompress(cPickle.loads)
 
 
