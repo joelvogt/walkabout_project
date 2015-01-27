@@ -6,7 +6,7 @@ logfile = None
 @networked_function(buffered=False)
 def save_file(filename):
     global logfile
-    logfile = open(filename, 'w', buffering=2048)
+    logfile = open(filename, 'w')
 
 
 @networked_function(buffered=True)
