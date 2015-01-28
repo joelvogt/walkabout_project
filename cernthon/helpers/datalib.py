@@ -34,17 +34,18 @@ def __serialize_data_config():
         CPython=functools.partial(cPickle.dumps, protocol=2),
         PyPy=functools.partial(cPickle.dumps, protocol=2)
     )
-    return compress(python_interpreters[sys.subversion[0]])
+    return python_interpreters[sys.subversion[0]]
+
+
+def decompress(func):
+    def on_call(data):
+        return func(zlib.decompress(data))
+
+    return on_call
 
 
 def __deserialize_data_config():
-    def decompress(func):
-        def on_call(data):
-            return func(zlib.decompress(data))
-
-        return on_call
-
-    return decompress(cPickle.loads)
+    return cPickle.loads
 
 
 serialize_data = __serialize_data_config()
