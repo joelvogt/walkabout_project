@@ -3,7 +3,7 @@ __author__ = u'Joël Vogt'
 import xmlrpclib
 import sys
 
-from cernthon.rmodule.client import SocketServerProxy, CLIENTS
+from cernthon.rmodule.client import SocketServerProxy
 
 
 def import_module(module_name, directory_service_hostname='127.0.0.1', port=9000):
@@ -16,7 +16,7 @@ def import_module(module_name, directory_service_hostname='127.0.0.1', port=9000
     module_server_hostname, port, buffer_size, methods = \
         modules_directory_service.import_module(
             module_name,
-            CLIENTS.index(sys.subversion[0])
+            sys.subversion[0]
         )
     server = SocketServerProxy(module_server_hostname, port, buffer_size, **methods)
     return server

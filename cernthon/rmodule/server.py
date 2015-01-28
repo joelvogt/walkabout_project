@@ -3,12 +3,12 @@ __author__ = u'Joël Vogt'
 import socket
 import multiprocessing
 
-from cernthon.adapters import numpy_adapters as npa
+# from cernthon.adapters import numpy_adapters as npa
 from cernthon.adapters import base
 from cernthon.helpers import datalib
 
 
-DEFAULT_ADAPTERS = [npa.numpy_to_jython]
+DEFAULT_ADAPTERS = []
 
 
 def _function_process(tcp_client_socket, buffer_size, remote_functions):

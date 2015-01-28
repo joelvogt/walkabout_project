@@ -12,13 +12,12 @@ from cernthon.rmodule.server import SocketModuleBinder
 from cernthon.rmodule import client
 
 
-MODULES_BINDER_REGISTRY = [
-    # XMLRPC_Node,
-    SocketModuleBinder,
-    SocketModuleBinder,
-    SocketModuleBinder
-]
-
+MODULES_BINDER_REGISTRY = dict(
+    defaul=SocketModuleBinder,
+    Jython=SocketModuleBinder,
+    CPython=SocketModuleBinder,
+    PyPy=SocketModuleBinder
+)
 
 class ModulesDirectoryService(object):
     def __init__(self, hostname='localhost', port=9000, modules=None):
@@ -28,14 +27,15 @@ class ModulesDirectoryService(object):
         self._do_run = True
         self._modules = modules
         self._server = SimpleXMLRPCServer((hostname, port), allow_none=True)
-        self._modules_processes = map(lambda x: {}, client.CLIENTS)
+        self._modules_processes = dict(map(lambda x: (x, {}), client.CLIENTS))
         try:
             self._hostname = socket.gethostbyname(socket.gethostname())
         except socket.gaierror:
             self._hostname = hostname
         self._server.register_instance(self)
 
-    def import_module(self, module_name, module_client=0):
+    def import_module(self, module_name, module_client):
+
         def bind_module(modules_processes, module_binder_instance, module_ref):
             module = imp.load_source(module_ref['name'], module_ref['file'])
             map(lambda x: module_binder_instance(*x), module.networked_function.functions_registry)
