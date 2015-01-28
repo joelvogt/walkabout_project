@@ -1,4 +1,4 @@
-#!env_pypy /bin/python
+#!env_pypy/bin/python
 
 import ConfigParser
 
