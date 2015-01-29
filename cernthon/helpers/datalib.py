@@ -47,7 +47,7 @@ def decompress(func):
 
 
 def __deserialize_data_config():
-    def on_call(data)
+    def on_call(data):
         if type(data) is str:
             return data
         return cPickle.loads(data)
