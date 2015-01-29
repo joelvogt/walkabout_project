@@ -25,7 +25,7 @@ def slice_evenly(arr, slice_size):
 def __serialize_data_config():
     def compress(func):
         def on_call(data):
-            if type(data) == str:
+            if type(data) is str:
                 return data
             return func(data)
 
@@ -41,15 +41,18 @@ def __serialize_data_config():
 
 def decompress(func):
     def on_call(data):
-        if type(data) == str:
-            return data
-        return data
+        return func(zlib.decompress(data))
 
     return on_call
 
 
 def __deserialize_data_config():
-    return decompress(cPickle.loads)
+    def on_call(data)
+        if type(data) is str:
+            return data
+        return cPickle.loads(data)
+
+    return on_call
 
 
 serialize_data = __serialize_data_config()
