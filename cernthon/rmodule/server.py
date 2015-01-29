@@ -96,7 +96,7 @@ class SocketModuleBinder(object):
         self._tcpSerSock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self._tcpSerSock.bind((self._hostname, self._port))
         self._tcpSerSock.listen(5)
-        self._tcpSerSock.settimeout(TIMEOUT)
+        # self._tcpSerSock.settimeout(TIMEOUT)
         self._ready = True
         self._buffered_methods = []
         self._unbuffered_methods = []
