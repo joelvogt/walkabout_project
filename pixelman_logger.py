@@ -1,11 +1,12 @@
 from cernthon.helpers.moduleslib import networked_function
 
 logfile = None
-
+file_name = None
 
 @networked_function(buffered=False)
 def save_file(filename):
-    global logfile
+    global logfile, file_name
+    file_name = filename
     print 'save '
     logfile = open(filename, 'w')
 
@@ -16,7 +17,7 @@ def write(event):
     logfile.write(event)
     logfile.flush()
     logfile.close()
-    fd = open(logfile)
+    fd = open(file_name)
     h2 = hash(''.join(fd.readlines()))
     fd.close()
     return h2
