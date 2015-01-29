@@ -3,6 +3,7 @@ __author__ = u'Joël Vogt'
 import socket
 import multiprocessing
 import warnings
+from cernthon.rmodule import CLOSE_CONNECTION
 
 
 # from cernthon.adapters import numpy_adapters as npa
@@ -27,7 +28,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions):
         while is_used_by_client:
 
             message = tcp_client_socket.recv(buffer_size)
-            if CLOSE_CONNECTION in message:
+            if CLOSE_CONNECTION == message:
                 print('Connection Timeout')
                 print(len(frame))
                 break

@@ -9,6 +9,7 @@ from atexit import register
 import tempfile
 
 from cernthon.helpers import datalib
+from cernthon.rmodule import CLOSE_CONNECTION
 
 
 BUFFER_SIZE = 1024
@@ -111,7 +112,7 @@ class RemoteModuleProxy(object):
         self._tcpCliSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._tcpCliSock.connect(self._server_address)
         # self._tcpCliSock.settimeout(20)
-        register(self.__del__)  # Jython won't call this destructor
+        # register(self.__del__)  # Jython won't call this destructor
 
     def __getattr__(self, name):
         if name not in self._methods_registry:
@@ -135,6 +136,6 @@ class RemoteModuleProxy(object):
             if hasattr(self._last_method, '__del__'):
                 self._last_method.__del__()  # Jython won't call this destructor
             self._last_method = None
-        self._tcpCliSock.send()
+        self._tcpCliSock.send(CLOSE_CONNECTION)
         print('end')
         self._tcpCliSock.close()
