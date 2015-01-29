@@ -96,7 +96,6 @@ class SocketModuleBinder(object):
         self._tcpSerSock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self._tcpSerSock.bind((self._hostname, self._port))
         self._tcpSerSock.listen(5)
-        # self._tcpSerSock.settimeout(TIMEOUT)
         self._ready = True
         self._buffered_methods = []
         self._unbuffered_methods = []
@@ -110,6 +109,7 @@ class SocketModuleBinder(object):
     def run(self):
         while True:
             tcp_client_socket, _ = self._tcpSerSock.accept()
+            tcp_client_socket.settimeout(TIMEOUT)
             p = multiprocessing.Process(target=_function_process,
                                         args=(tcp_client_socket, self._buffer_size, self._remote_functions))
             p.start()

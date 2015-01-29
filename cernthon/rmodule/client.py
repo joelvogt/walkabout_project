@@ -110,7 +110,7 @@ class RemoteModuleProxy(object):
         self._methods_registry = unbuffered_methods + buffered_methods
         self._tcpCliSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._tcpCliSock.connect(self._server_address)
-        self._tcpCliSock.settimeout(20)
+        # self._tcpCliSock.settimeout(20)
         register(self.__del__)  # Jython won't call this destructor
 
     def __getattr__(self, name):
