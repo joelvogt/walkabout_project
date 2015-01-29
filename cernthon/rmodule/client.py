@@ -129,7 +129,6 @@ class RemoteModuleProxy(object):
         return self._last_method
 
     def __del__(self):
-        print 'calling delete'
         if self._last_method is not None:
             if hasattr(self._last_method, '__del__'):
                 self._last_method.__del__()  # Jython won't call this destructor

@@ -2,6 +2,8 @@
 __author__ = u'Joël Vogt'
 import socket
 import multiprocessing
+import warnings
+
 
 # from cernthon.adapters import numpy_adapters as npa
 from cernthon.adapters import base
@@ -22,12 +24,16 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions):
     is_used_by_client = True
     while is_used_by_client:
         while is_used_by_client:
-            message = tcp_client_socket.recv(buffer_size)
+            try:
+                message = tcp_client_socket.recv(buffer_size)
+            except socket.timeout as e:
+                print('Connection Timeout')
+                return_value = e
+
             if not message:
                 is_used_by_client = False
                 frame = None
                 return_value = -1
-                print('Ending transmission')
                 break
             if not remote_function:
                 if message[:3] != datalib.MESSAGE_HEADER:
@@ -82,7 +88,8 @@ class SocketModuleBinder(object):
         self._tcpSerSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._tcpSerSock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self._tcpSerSock.bind((self._hostname, self._port))
-        self._tcpSerSock.listen(50)
+        self._tcpSerSock.listen(5)
+        self._tcpSerSock.settimeout(1)
         self._ready = True
         self._buffered_methods = []
         self._unbuffered_methods = []
