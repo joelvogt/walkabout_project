@@ -25,9 +25,9 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions):
     is_used_by_client = True
     while is_used_by_client:
         while is_used_by_client:
-            try:
-                message = tcp_client_socket.recv(buffer_size)
-            except socket.timeout as e:
+
+            message = tcp_client_socket.recv(buffer_size)
+            if CLOSE_CONNECTION in message:
                 print('Connection Timeout')
                 print(len(frame))
                 break
@@ -107,7 +107,6 @@ class SocketModuleBinder(object):
     def run(self):
         while True:
             tcp_client_socket, _ = self._tcpSerSock.accept()
-            tcp_client_socket.settimeout(TIMEOUT)
             p = multiprocessing.Process(target=_function_process,
                                         args=(tcp_client_socket, self._buffer_size, self._remote_functions))
             p.start()

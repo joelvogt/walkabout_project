@@ -10,7 +10,7 @@ import zlib
 MESSAGE_HEADER = 'HDR'
 MESSAGE_HEADER_END = 'EOH'
 HEADER_DELIMITER = '|'
-NETWORK_BUFFER_SIZE = 16384
+NETWORK_BUFFER_SIZE = 12288
 
 
 def string_to_int(value): return int(value) if '.' not in value and ord('0') <= ord(value[0]) <= ord(

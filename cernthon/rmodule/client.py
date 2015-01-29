@@ -135,6 +135,6 @@ class RemoteModuleProxy(object):
             if hasattr(self._last_method, '__del__'):
                 self._last_method.__del__()  # Jython won't call this destructor
             self._last_method = None
-            # self._tcpCliSock.send('\x00')
+        self._tcpCliSock.send()
         print('end')
         self._tcpCliSock.close()
