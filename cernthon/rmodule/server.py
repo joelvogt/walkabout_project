@@ -32,16 +32,17 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions):
                 return_value = e
                 print(len(frame))
                 frame = None
+                break
 
             if not message:
                 is_used_by_client = False
-                frame = None
                 return_value = -1
                 break
             if not remote_function:
                 if message[:3] != datalib.MESSAGE_HEADER:
                     return_value = ReferenceError(
                         'Message does not contain header information and a function reference')
+                    frame = None
                     break
                 header, message = message.split('%(delimiter)s%(header_end)s' % dict(
                     delimiter=datalib.HEADER_DELIMITER,
@@ -54,6 +55,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions):
                 except IndexError:
                     return_value = AttributeError("Server side exception: \
                     Remote module doesn't have that function")
+                    frame = None
                     break
             else:
                 input_buffer.extend(message)
@@ -69,6 +71,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions):
             else:
                 continue
             break
+        print('expecting frame')
         if frame:
             args, kwargs = datalib.deserialize_data(frame)
             try:
