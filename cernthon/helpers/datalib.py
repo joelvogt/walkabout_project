@@ -25,9 +25,7 @@ def slice_evenly(arr, slice_size):
 def __serialize_data_config():
     def compress(func):
         def on_call(data):
-            if type(data) is str:
-                return data
-            return func(data)
+            return zlib.compress(func(data))
 
         return on_call
 
@@ -36,7 +34,7 @@ def __serialize_data_config():
         CPython=functools.partial(cPickle.dumps, protocol=2),
         PyPy=functools.partial(cPickle.dumps, protocol=2)
     )
-    return compress(python_interpreters[sys.subversion[0]])
+    return python_interpreters[sys.subversion[0]]
 
 
 def decompress(func):
@@ -47,12 +45,7 @@ def decompress(func):
 
 
 def __deserialize_data_config():
-    def on_call(data):
-        if type(data) is str:
-            return data
-        return cPickle.loads(data)
-
-    return on_call
+    return cPickle.loads
 
 
 serialize_data = __serialize_data_config()
