@@ -16,10 +16,10 @@ def write(event):
     logfile.write(event)
     logfile.flush()
     logfile.close()
-    # fd = open(file_name)
-    # h2 = hash(''.join(fd.readlines()))
-    # fd.close()
-    # return h2
+    fd = open(file_name)
+    h2 = hash(''.join(fd.readlines()))
+    fd.close()
+    return h2
 
 
 @networked_function(buffered=False)
