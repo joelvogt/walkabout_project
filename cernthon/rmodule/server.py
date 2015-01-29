@@ -11,6 +11,7 @@ from cernthon.helpers import datalib
 
 
 DEFAULT_ADAPTERS = []
+TIMEOUT = 10
 
 
 def _function_process(tcp_client_socket, buffer_size, remote_functions):
@@ -29,6 +30,8 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions):
             except socket.timeout as e:
                 print('Connection Timeout')
                 return_value = e
+                print(len(frame))
+                frame = None
 
             if not message:
                 is_used_by_client = False
@@ -89,7 +92,7 @@ class SocketModuleBinder(object):
         self._tcpSerSock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self._tcpSerSock.bind((self._hostname, self._port))
         self._tcpSerSock.listen(5)
-        self._tcpSerSock.settimeout(1)
+        self._tcpSerSock.settimeout(TIMEOUT)
         self._ready = True
         self._buffered_methods = []
         self._unbuffered_methods = []
