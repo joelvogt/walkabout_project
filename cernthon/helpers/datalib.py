@@ -25,7 +25,9 @@ def slice_evenly(arr, slice_size):
 def __serialize_data_config():
     def compress(func):
         def on_call(data):
-            return zlib.compress(func(data))
+            if type(data) == str:
+                return data
+            return func(data)
 
         return on_call
 
@@ -39,7 +41,9 @@ def __serialize_data_config():
 
 def decompress(func):
     def on_call(data):
-        return func(zlib.decompress(data))
+        if type(data) == str:
+            return data
+        return data
 
     return on_call
 
