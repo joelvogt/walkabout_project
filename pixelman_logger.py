@@ -23,5 +23,6 @@ def write(event):
 
 
 @networked_function(buffered=False)
-def foo():
-    return 'bar'
+def ececute_something(func, *args, **kwargs):
+    ret = func(*args, **kwargs)
+    return ret
