@@ -15,14 +15,15 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions):
     input_buffer = None
     total_data_size = 0
     remote_function = None
-    return_value = None
+    """ return_value == -1 if no function was called.
+    None can be returned by functions without explicit return value"""
+    return_value = -1
     frame = None
     is_used_by_client = True
     while is_used_by_client:
         while is_used_by_client:
             message = tcp_client_socket.recv(buffer_size)
             if not message:
-                print 'ending'
                 is_used_by_client = False
                 break
             if not remote_function:
@@ -63,11 +64,10 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions):
                 return_value = remote_function(*args, **kwargs)
             except Exception as e:
                 return_value = e
-        if return_value:
+        if return_value != -1:
             tcp_client_socket.send(datalib.serialize_data(return_value))
-            return_value = None
+            return_value = -1
             remote_function = None
-    print 'exist loop'
     tcp_client_socket.close()
 
 
