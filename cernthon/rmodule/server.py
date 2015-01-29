@@ -68,6 +68,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions):
             tcp_client_socket.send(datalib.serialize_data(return_value))
             return_value = -1
             remote_function = None
+            frame = None
     tcp_client_socket.close()
 
 
