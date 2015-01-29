@@ -29,9 +29,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions):
                 message = tcp_client_socket.recv(buffer_size)
             except socket.timeout as e:
                 print('Connection Timeout')
-                return_value = e
                 print(len(frame))
-                frame = None
                 break
 
             if not message:
