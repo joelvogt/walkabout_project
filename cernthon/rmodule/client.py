@@ -110,7 +110,7 @@ class RemoteModuleProxy(object):
         self._methods_registry = unbuffered_methods + buffered_methods
         self._tcpCliSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._tcpCliSock.connect(self._server_address)
-        self._tcpCliSock.settimeout(30)
+        self._tcpCliSock.settimeout(20)
         register(self.__del__)  # Jython won't call this destructor
 
     def __getattr__(self, name):
@@ -130,8 +130,11 @@ class RemoteModuleProxy(object):
         return self._last_method
 
     def __del__(self):
+        print('ldeleting socket')
         if self._last_method is not None:
             if hasattr(self._last_method, '__del__'):
                 self._last_method.__del__()  # Jython won't call this destructor
             self._last_method = None
-            self._tcpCliSock.close()
+            # self._tcpCliSock.send('\x00')
+        print('end')
+        self._tcpCliSock.close()

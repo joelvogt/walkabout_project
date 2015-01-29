@@ -71,14 +71,15 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions):
             else:
                 continue
             break
-        print('expecting frame')
         if frame:
+            print('process frame')
             args, kwargs = datalib.deserialize_data(frame)
             try:
                 return_value = remote_function(*args, **kwargs)
             except Exception as e:
                 return_value = e
         if return_value != -1:
+            print('process return value')
             tcp_client_socket.send(datalib.serialize_data(return_value))
             remote_function = None
     tcp_client_socket.close()
