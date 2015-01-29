@@ -25,6 +25,8 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions):
             message = tcp_client_socket.recv(buffer_size)
             if not message:
                 is_used_by_client = False
+                frame = None
+                return_value = -1
                 break
             if not remote_function:
                 if message[:3] != datalib.MESSAGE_HEADER:
@@ -66,9 +68,9 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions):
                 return_value = e
         if return_value != -1:
             tcp_client_socket.send(datalib.serialize_data(return_value))
-            return_value = -1
             remote_function = None
-            frame = None
+
+    print 'closing'
     tcp_client_socket.close()
 
 
