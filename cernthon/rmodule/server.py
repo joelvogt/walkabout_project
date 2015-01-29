@@ -22,6 +22,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions):
         while is_used_by_client:
             message = tcp_client_socket.recv(buffer_size)
             if not message:
+                print 'ending'
                 is_used_by_client = False
                 break
             if not remote_function:
@@ -64,7 +65,9 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions):
                 return_value = e
         if return_value:
             tcp_client_socket.send(datalib.serialize_data(return_value))
+            return_value = None
             remote_function = None
+    print 'exist loop'
     tcp_client_socket.close()
 
 
