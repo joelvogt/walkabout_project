@@ -38,7 +38,10 @@ class BufferedMethod(object):
         self._func = func
         self._buffer_size = 0
         self._temp_file = tempfile.NamedTemporaryFile()
-        self._network_func = Thread(target=_process_wrapper, args=(func, self._temp_file.name, self._args_queue))
+        self._network_func = Thread(target=_process_wrapper,
+                                    args=(func,
+                                          self._temp_file.name,
+                                          self._args_queue))
         self._network_func.start()
 
     def __call__(self, *args, **kwargs):
@@ -107,14 +110,17 @@ class RemoteModuleProxy(object):
         self._methods_registry = unbuffered_methods + buffered_methods
         self._tcpCliSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._tcpCliSock.connect(self._server_address)
-
         register(self.__del__)  # Jython won't call this destructor
 
-
     def __getattr__(self, name):
+        if name not in self._methods_registry:
+            raise AttributeError("Client side exception: \
+            Remote 'module' doesn't have that function")
         if name != self._last_method_name:
             self._last_method_name = name
-            func = functools.partial(remote_function, self._methods_registry.index(name), self._tcpCliSock,
+            func = functools.partial(remote_function,
+                                     self._methods_registry.index(name),
+                                     self._tcpCliSock,
                                      self._buffer_size)
             if name in self._buffered_methods:
                 self._last_method = BufferedMethod(func)

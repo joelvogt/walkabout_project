@@ -16,3 +16,7 @@ def write(event):
     logfile.flush()
     # logfile.close()
 
+
+@networked_function(buffered=False)
+def foo():
+    return 'bar'
