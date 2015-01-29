@@ -7,7 +7,6 @@ file_name = None
 def save_file(filename):
     global logfile, file_name
     file_name = filename
-    print 'save '
     logfile = open(filename, 'w')
 
 
