@@ -27,6 +27,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions):
                 is_used_by_client = False
                 frame = None
                 return_value = -1
+                print('Ending transmission')
                 break
             if not remote_function:
                 if message[:3] != datalib.MESSAGE_HEADER:
@@ -42,7 +43,6 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions):
                     total_data_size = int(message_length)
                     input_buffer = datalib.InputStreamBuffer(message)
                 except IndexError:
-                    print 'error'
                     return_value = AttributeError("Server side exception: \
                     Remote module doesn't have that function")
                     break
@@ -69,8 +69,6 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions):
         if return_value != -1:
             tcp_client_socket.send(datalib.serialize_data(return_value))
             remote_function = None
-
-    print 'closing'
     tcp_client_socket.close()
 
 
