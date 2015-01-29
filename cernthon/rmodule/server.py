@@ -17,50 +17,54 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions):
     remote_function = None
     return_value = None
     frame = None
-    while True:
-        message = tcp_client_socket.recv(buffer_size)
-        if not message:
+    is_used_by_client = True
+    while is_used_by_client:
+        while is_used_by_client:
+            message = tcp_client_socket.recv(buffer_size)
+            if not message:
+                is_used_by_client = False
+                break
+            if not remote_function:
+                if message[:3] != datalib.MESSAGE_HEADER:
+                    return_value = ReferenceError(
+                        'Message does not contain header information and a function reference')
+                    break
+                header, message = message.split('%(delimiter)s%(header_end)s' % dict(
+                    delimiter=datalib.HEADER_DELIMITER,
+                    header_end=datalib.MESSAGE_HEADER_END))
+                header, function, message_length = header.split(datalib.HEADER_DELIMITER)
+                try:
+                    remote_function = remote_functions[int(function)]
+                    total_data_size = int(message_length)
+                    input_buffer = datalib.InputStreamBuffer(message)
+                except IndexError:
+                    print 'error'
+                    return_value = AttributeError("Server side exception: \
+                    Remote module doesn't have that function")
+                    break
+            else:
+                input_buffer.extend(message)
+            if total_data_size < input_buffer.size:
+                return_value = OverflowError(
+                    'Server side exception: \
+                    The size {} is longer than \
+                    the expected message size {}'.format(
+                        input_buffer.size,
+                        total_data_size))
+            elif total_data_size == input_buffer.size:
+                frame = input_buffer[0:input_buffer.size]
+            else:
+                continue
             break
-        if not remote_function:
-            if message[:3] != datalib.MESSAGE_HEADER:
-                return_value = ReferenceError('Message does not contain header information and a function reference')
-                break
-            header, message = message.split('%(delimiter)s%(header_end)s' % dict(
-                delimiter=datalib.HEADER_DELIMITER,
-                header_end=datalib.MESSAGE_HEADER_END))
-            header, function, message_length = header.split(datalib.HEADER_DELIMITER)
+        if frame:
+            args, kwargs = datalib.deserialize_data(frame)
             try:
-                remote_function = remote_functions[int(function)]
-                total_data_size = int(message_length)
-                input_buffer = datalib.InputStreamBuffer(message)
-            except IndexError:
-                print 'error'
-                return_value = AttributeError("Server side exception: \
-                Remote module doesn't have that function")
-                break
-        else:
-            input_buffer.extend(message)
-        if total_data_size < input_buffer.size:
-            return_value = OverflowError(
-                'Server side exception: \
-                The size {} is longer than \
-                the expected message size {}'.format(
-                    input_buffer.size,
-                    total_data_size))
-        elif total_data_size == input_buffer.size:
-            frame = input_buffer[0:input_buffer.size]
-        else:
-            continue
-        break
-    print return_value
-    if not return_value:  # no exception was caught earlier in the loop, the function can be called
-        args, kwargs = datalib.deserialize_data(frame)
-        try:
-            return_value = remote_function(*args, **kwargs)
-        except Exception as e:
-            return_value = e
-    tcp_client_socket.send(datalib.serialize_data(return_value))
-    remote_function = None
+                return_value = remote_function(*args, **kwargs)
+            except Exception as e:
+                return_value = e
+        if return_value:
+            tcp_client_socket.send(datalib.serialize_data(return_value))
+            remote_function = None
     tcp_client_socket.close()
 
 
