@@ -13,4 +13,6 @@ def save_file(filename):
 def write(event):
     global logfile
     logfile.write(event)
+    logfile.flush()
+    # logfile.close()
 

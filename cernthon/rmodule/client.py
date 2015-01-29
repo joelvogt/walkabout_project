@@ -94,7 +94,7 @@ def serialized_arguments(func):
     return on_call
 
 
-class SocketServerProxy(object):
+class RemoteModuleProxy(object):
     def __init__(self, hostname, port, buffer_size, unbuffered_methods, buffered_methods=None):
         if not buffered_methods:
             buffered_methods = []
