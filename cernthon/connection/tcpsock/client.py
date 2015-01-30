@@ -9,7 +9,7 @@ from atexit import register
 import tempfile
 
 from cernthon.helpers import datalib
-from cernthon.rmodule import CLOSE_CONNECTION
+from cernthon.connection import CLOSE_CONNECTION
 
 
 BUFFER_SIZE = 1024
@@ -109,10 +109,8 @@ class RemoteModuleProxy(object):
         self._last_method_name = None
         self._buffered_methods = buffered_methods
         self._methods_registry = unbuffered_methods + buffered_methods
-        self._tcpCliSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self._tcpCliSock.connect(self._server_address)
-        # self._tcpCliSock.settimeout(20)
-        # register(self.__del__)  # Jython won't call this destructor
+        self._tcp_client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self._tcp_client_socket.connect(self._server_address)
 
     def __getattr__(self, name):
         if name not in self._methods_registry:
@@ -122,7 +120,7 @@ class RemoteModuleProxy(object):
             self._last_method_name = name
             func = functools.partial(remote_function,
                                      self._methods_registry.index(name),
-                                     self._tcpCliSock,
+                                     self._tcp_client_socket,
                                      self._buffer_size)
             if name in self._buffered_methods:
                 self._last_method = BufferedMethod(func)
@@ -131,11 +129,9 @@ class RemoteModuleProxy(object):
         return self._last_method
 
     def __del__(self):
-        print('ldeleting socket')
         if self._last_method is not None:
             if hasattr(self._last_method, '__del__'):
                 self._last_method.__del__()  # Jython won't call this destructor
             self._last_method = None
-        self._tcpCliSock.send(CLOSE_CONNECTION)
-        print('end')
-        self._tcpCliSock.close()
+        self._tcp_client_socket.send(CLOSE_CONNECTION)
+        self._tcp_client_socket.close()

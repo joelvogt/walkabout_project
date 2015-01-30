@@ -3,7 +3,7 @@ __author__ = u'Joël Vogt'
 import socket
 import multiprocessing
 import warnings
-from cernthon.rmodule import CLOSE_CONNECTION
+from cernthon.connection import CLOSE_CONNECTION
 
 
 # from cernthon.adapters import numpy_adapters as npa
@@ -29,8 +29,6 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions):
 
             message = tcp_client_socket.recv(buffer_size)
             if CLOSE_CONNECTION == message:
-                print('Connection Timeout')
-                print(len(frame))
                 break
 
             if not message:
@@ -82,8 +80,8 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions):
     tcp_client_socket.close()
 
 
-class SocketModuleBinder(object):
-    def __init__(self, hostname, port, buffer_size=datalib.NETWORK_BUFFER_SIZE, adapters=DEFAULT_ADAPTERS):
+class Server(object):
+    def __init__(self, hostname, port, buffer_size, adapters=DEFAULT_ADAPTERS):
         self._hostname = hostname
         self._port = port
         self._buffer_size = buffer_size

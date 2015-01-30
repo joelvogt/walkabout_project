@@ -3,7 +3,17 @@ __author__ = u'Joël Vogt'
 import xmlrpclib
 import sys
 
-from cernthon.rmodule.client import RemoteModuleProxy
+from cernthon.connection.tcpsock.client import RemoteModuleProxy
+
+import os
+import imp
+
+config_file = os.path.join(os.curdir, 'config.py')
+cernthon_config = None
+if os.path.exists(config_file):
+    cernthon_config = imp.load_source('config', config_file)
+else:
+    raise AttributeError("config.py not found, the system can't be configured")
 
 
 def import_module(module_name, directory_service_hostname='127.0.0.1', port=9000):
@@ -23,7 +33,8 @@ def import_module(module_name, directory_service_hostname='127.0.0.1', port=9000
     module_server_hostname, port, buffer_size, methods = \
         modules_directory_service.import_module(
             module_name,
-            sys.subversion[0]
+            cernthon_config.client_id,
+            cernthon_config.modules
         )
     server = RemoteModuleProxy(module_server_hostname, port, buffer_size, **methods)
     return server
