@@ -94,11 +94,10 @@ def remote_function(function_ref, tcp_client_socket, buffer_size, serialized):
 def serialized_arguments(func):
     def on_call(*args, **kwargs):
         return func(datalib.serialize_data((args, kwargs)))
-
     return on_call
 
 
-class RemoteModuleProxy(object):
+class Client(object):
     def __init__(self, hostname, port, buffer_size, unbuffered_methods, buffered_methods=None):
         if not buffered_methods:
             buffered_methods = []

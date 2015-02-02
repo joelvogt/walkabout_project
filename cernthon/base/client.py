@@ -3,7 +3,7 @@ __author__ = u'Joël Vogt'
 import xmlrpclib
 import sys
 
-from cernthon.connection.tcpsock.client import RemoteModuleProxy
+from cernthon.connection.tcpsock.client import Client
 
 import os
 import imp
@@ -22,7 +22,7 @@ def import_module(module_name, directory_service_hostname='127.0.0.1', port=9000
     :param module_name: The name of the remote module that the user wants to import
     :param directory_service_hostname: The hostname or IP of the CERNthon server where the modules are hosted
     :param port: The port number of the CERNthon directory serice
-    :return: A RemoteModuleProxy object if the module is found, otherwise an ImportError error
+    :return: A Client object if the module is found, otherwise an ImportError error
     """
     modules_directory_service = xmlrpclib.ServerProxy(
         'http://%s:%d' %
@@ -36,5 +36,5 @@ def import_module(module_name, directory_service_hostname='127.0.0.1', port=9000
             cernthon_config.client_id,
             cernthon_config.modules
         )
-    server = RemoteModuleProxy(module_server_hostname, port, buffer_size, **methods)
+    server = Client(module_server_hostname, port, buffer_size, **methods)
     return server

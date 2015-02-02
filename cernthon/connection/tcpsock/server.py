@@ -15,7 +15,7 @@ DEFAULT_ADAPTERS = []
 TIMEOUT = 10
 
 
-def _function_process(tcp_client_socket, buffer_size, remote_functions):
+def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint):
     input_buffer = None
     total_data_size = 0
     remote_function = None
@@ -69,28 +69,28 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions):
                 continue
             break
         if frame:
-            args, kwargs = datalib.deserialize_data(frame)
+            args, kwargs = endpoint.to_receive(frame)
             try:
                 return_value = remote_function(*args, **kwargs)
             except Exception as e:
                 return_value = e
         if return_value != -1:
-            tcp_client_socket.send(datalib.serialize_data(return_value))
+            tcp_client_socket.send(endpoint.to_send(return_value))
             remote_function = None
     tcp_client_socket.close()
 
 
 class Server(object):
-    def __init__(self, hostname, port, buffer_size, adapters=DEFAULT_ADAPTERS):
+    def __init__(self, hostname, port, buffer_size, endpoint):
         self._hostname = hostname
         self._port = port
+        self._endpoint = endpoint
         self._buffer_size = buffer_size
-        self._adapters = adapters
         self._remote_functions = []
-        self._tcpSerSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self._tcpSerSock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self._tcpSerSock.bind((self._hostname, self._port))
-        self._tcpSerSock.listen(5)
+        self._tcp_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self._tcp_server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self._tcp_server_socket.bind((self._hostname, self._port))
+        self._tcp_server_socket.listen(5)
         self._ready = True
         self._buffered_methods = []
         self._unbuffered_methods = []
@@ -99,13 +99,17 @@ class Server(object):
         self._remote_functions.append(func)
 
     def __del__(self):
-        self._tcpSerSock.close()
+        self._tcp_server_socket.close()
 
     def run(self):
         while True:
-            tcp_client_socket, _ = self._tcpSerSock.accept()
+            tcp_client_socket, _ = self._tcp_server_socket.accept()
             p = multiprocessing.Process(target=_function_process,
-                                        args=(tcp_client_socket, self._buffer_size, self._remote_functions))
+                                        args=(tcp_client_socket,
+                                              self._buffer_size,
+                                              self._remote_functions,
+                                              self._endpoint
+                                        ))
             p.start()
 
     def connection_information(self):
@@ -125,8 +129,8 @@ class Server(object):
             return on_call
 
         networked_func = buffered_func
-        for adapter in self._adapters:
-            networked_func = base.function_adapter_mapper(networked_func, adapter)
+        # for adapter in self._adapters:
+        #     networked_func = base.function_adapter_mapper(networked_func, adapter)
         if buffered:
             self._buffered_methods.append(buffered_func.__name__)
             networked_func = buffered_function(networked_func)
