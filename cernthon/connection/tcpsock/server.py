@@ -112,13 +112,13 @@ class Server(object):
                       self._endpoint))
             p.start()
 
-    def connection_information(self):
-        return self._hostname, \
-               self._port, \
-               self._buffer_size, \
-               dict(
-                   unbuffered_methods=self._unbuffered_methods,
-                   buffered_methods=self._buffered_methods)
+    # def connection_information(self):
+    #     return self._hostname, \
+    #            self._port, \
+    #            self._buffer_size, \
+    #            dict(
+    #                unbuffered_methods=self._unbuffered_methods,
+    #                buffered_methods=self._buffered_methods)
 
     def __call__(self, buffered_func, buffered=False):
         def buffered_function(func):

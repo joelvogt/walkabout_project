@@ -15,6 +15,7 @@ class ModuleConfig(object):
         self._hostname = hostname
         self._port = port
 
+
     def server_factory(self, config):
         connection_module = ModuleConfig.get_class('connection', config.pop('connection'), 'server')
         serialization = config.pop('serialization')
@@ -26,3 +27,11 @@ class ModuleConfig(object):
         self._port += 1
         config['port'] = self._port
         return connection_module.Server(**config)
+
+    def client_configuration(self, server):
+        return server._hostname, \
+               server._port, \
+               server._buffer_size, \
+               dict(
+                   unbuffered_methods=server._unbuffered_methods,
+                   buffered_methods=server._buffered_methods)
