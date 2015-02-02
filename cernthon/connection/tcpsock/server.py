@@ -5,9 +5,6 @@ import multiprocessing
 from cernthon.connection import CLOSE_CONNECTION
 from cernthon.helpers import datalib
 
-
-DEFAULT_ADAPTERS = []
-
 TIMEOUT = 10
 
 
