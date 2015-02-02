@@ -14,18 +14,15 @@ class ModulesDirectoryService(object):
     def __init__(self, hostname='localhost', port=9000, modules=None):
         if not modules:
             modules = {}
-        self._next_port = port
         self._do_run = True
         try:
             self._hostname = socket.gethostbyname(socket.gethostname())
         except socket.gaierror:
             self._hostname = hostname
-        self._connection_config = ModuleConfig(hostname, port)
+        self._connection_config = ModuleConfig(self._hostname, self._port)
         self._modules = modules
         self._server = SimpleXMLRPCServer((hostname, port))  # , allow_none=True)
-
         self._modules_processes = {}
-
         self._server.register_instance(self)
 
     def bind_module(self, modules_process, module_binder_instance, module_ref):
