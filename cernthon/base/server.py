@@ -55,7 +55,6 @@ class ModulesDirectoryService(object):
         return self._modules_processes[client_id][module_name][1]
 
     def on_start(self):
-        pprint.pprint('Modules Directory Service {0}:{1}'.format(self._hostname, self._next_port))
         try:
             self._server.serve_forever()
         except KeyboardInterrupt:
