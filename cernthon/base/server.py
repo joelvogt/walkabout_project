@@ -44,10 +44,9 @@ class ModulesDirectoryService(object):
         if module_name not in self._modules_processes[client_id]:
             module_binder_instance = self._connection_config.server_factory(config[module_name])
             self.bind_module(self._modules_processes[client_id], module_binder_instance, self._modules[module_name])
-        elif os.path.getmtime(self._modules[module_name]['file']) > self._modules_processes[client_id][module_name][
-            2]:
-            self._modules_processes[client_id][module_name][0].terminate()
-            self._modules_processes[client_id][module_name][0].join()
+        elif os.path.getmtime(self._modules[module_name]['file']) > self._modules_processes[client_id][module_name]['last_modified']:
+            self._modules_processes[client_id][module_name]['module_process'].terminate()
+            self._modules_processes[client_id][module_name]['module_process'].join()
             del self._modules_processes[client_id][module_name]
             module_binder_instance = self._connection_config.server_factory(config[module_name])
             self.bind_module(self._modules_processes[client_id], module_binder_instance, self._modules[module_name])
