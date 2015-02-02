@@ -16,10 +16,10 @@ class ModulesDirectoryService(object):
             modules = {}
         self._do_run = True
         try:
-            self._hostname = socket.gethostbyname(socket.gethostname())
+            hostname = socket.gethostbyname(socket.gethostname())
         except socket.gaierror:
-            self._hostname = hostname
-        self._connection_config = ModuleConfig(self._hostname, self._port)
+            hostname = hostname
+        self._connection_config = ModuleConfig(hostname,port)
         self._modules = modules
         self._server = SimpleXMLRPCServer((hostname, port))  # , allow_none=True)
         self._modules_processes = {}
