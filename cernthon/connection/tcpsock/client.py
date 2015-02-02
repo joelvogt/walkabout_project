@@ -5,7 +5,6 @@ import socket
 from threading import Thread
 from Queue import Queue, Empty
 from collections import deque
-from atexit import register
 import tempfile
 
 from cernthon.helpers import datalib
@@ -94,6 +93,7 @@ def remote_function(function_ref, tcp_client_socket, buffer_size, serialized):
 def serialized_arguments(func):
     def on_call(*args, **kwargs):
         return func(datalib.serialize_data((args, kwargs)))
+
     return on_call
 
 

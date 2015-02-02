@@ -1,5 +1,4 @@
 # -*- coding:utf-8 -*-
-from cernthon.connection.tcpsock import client
 from cernthon.helpers.configlib import ModuleConfig
 
 __author__ = u'Joël Vogt'
@@ -19,7 +18,7 @@ class ModulesDirectoryService(object):
         self._do_run = True
         self._connection_config = ModuleConfig(hostname, port)
         self._modules = modules
-        self._server = SimpleXMLRPCServer((hostname, port))#, allow_none=True)
+        self._server = SimpleXMLRPCServer((hostname, port))  # , allow_none=True)
 
         self._modules_processes = {}
         try:
@@ -34,8 +33,8 @@ class ModulesDirectoryService(object):
         module.networked_function.functions_registry = []
         module_binder_process = Process(target=module_binder_instance.run, name=module_ref['name'])
         modules_process[module_ref['name']] = [module_binder_process,
-                                        module_binder_instance.connection_information(),
-                                        os.path.getmtime(self._modules[module_ref['name']]['file'])]
+                                               module_binder_instance.connection_information(),
+                                               os.path.getmtime(self._modules[module_ref['name']]['file'])]
         module_binder_process.start()
 
     def import_module(self, module_name, client_id, config):

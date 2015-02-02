@@ -1,12 +1,11 @@
 # -*-coding:utf-8 *-
 __author__ = u'Joël Vogt'
 import xmlrpclib
-import sys
+import imp
 
 from cernthon.connection.tcpsock.client import Client
-
 import os
-import imp
+
 
 config_file = os.path.join(os.curdir, 'config.py')
 cernthon_config = None

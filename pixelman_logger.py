@@ -23,5 +23,5 @@ def write(event):
 
 
 @networked_function(buffered=False)
-def ececute_something(func, *args, **kwargs):
+def do_something( *args, **kwargs):
     print 'foooo'
