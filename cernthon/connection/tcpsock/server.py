@@ -2,17 +2,12 @@
 __author__ = u'Joël Vogt'
 import socket
 import multiprocessing
-
 from cernthon.connection import CLOSE_CONNECTION
-
-
-
-
-# from cernthon.adapters import numpy_adapters as npa
 from cernthon.helpers import datalib
 
 
 DEFAULT_ADAPTERS = []
+
 TIMEOUT = 10
 
 
@@ -27,7 +22,6 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
     is_used_by_client = True
     while is_used_by_client:
         while is_used_by_client:
-
             message = tcp_client_socket.recv(buffer_size)
             if CLOSE_CONNECTION == message:
                 break
@@ -36,12 +30,14 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                 is_used_by_client = False
                 return_value = -1
                 break
+
             if not remote_function:
                 if message[:3] != datalib.MESSAGE_HEADER:
                     return_value = ReferenceError(
                         'Message does not contain header information and a function reference')
                     frame = None
                     break
+
                 header, message = message.split('%(delimiter)s%(header_end)s' % dict(
                     delimiter=datalib.HEADER_DELIMITER,
                     header_end=datalib.MESSAGE_HEADER_END))
@@ -57,6 +53,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                     break
             else:
                 input_buffer.extend(message)
+
             if total_data_size < input_buffer.size:
                 return_value = OverflowError(
                     'Server side exception: \
@@ -64,20 +61,25 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                     the expected message size {}'.format(
                         input_buffer.size,
                         total_data_size))
+
             elif total_data_size == input_buffer.size:
                 frame = input_buffer[0:input_buffer.size]
+
             else:
                 continue
             break
+
         if frame:
             args, kwargs = endpoint.to_receive(frame)
             try:
                 return_value = remote_function(*args, **kwargs)
             except Exception as e:
                 return_value = e
+
         if return_value != -1:
             tcp_client_socket.send(endpoint.to_send(return_value))
             remote_function = None
+
     tcp_client_socket.close()
 
 
@@ -105,12 +107,12 @@ class Server(object):
     def run(self):
         while True:
             tcp_client_socket, _ = self._tcp_server_socket.accept()
-            p = multiprocessing.Process(target=_function_process,
-                                        args=(tcp_client_socket,
-                                              self._buffer_size,
-                                              self._remote_functions,
-                                              self._endpoint
-                                        ))
+            p = multiprocessing.Process(
+                target=_function_process,
+                args=(tcp_client_socket,
+                      self._buffer_size,
+                      self._remote_functions,
+                      self._endpoint))
             p.start()
 
     def connection_information(self):
@@ -119,8 +121,7 @@ class Server(object):
                self._buffer_size, \
                dict(
                    unbuffered_methods=self._unbuffered_methods,
-                   buffered_methods=self._buffered_methods
-               )
+                   buffered_methods=self._buffered_methods)
 
     def __call__(self, buffered_func, buffered=False):
         def buffered_function(func):
