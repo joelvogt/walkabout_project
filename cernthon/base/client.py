@@ -2,10 +2,10 @@
 __author__ = u'Joël Vogt'
 import xmlrpclib
 import imp
+from collections import namedtuple
 
 from cernthon.connection.tcpsock.client import Client
 import os
-from collections import namedtuple
 
 
 config_file = os.path.join(os.curdir, 'config.py')
@@ -16,12 +16,12 @@ else:
     CernthonConfig = namedtuple('CernthonConfig', ['client_id', 'modules'])
     client_id = 'osx_client'
     modules = dict(
-        pixelman_logger = dict(
-            buffer_size = 4096,
-            connection = 'tcpsock',
-            serialization = dict(
-                data = 'python_pickling',
-                results = 'python_pickling'
+        pixelman_logger=dict(
+            buffer_size=4096,
+            connection='tcpsock',
+            serialization=dict(
+                data='python_pickling',
+                results='python_pickling'
             )
         )
     )
@@ -43,11 +43,6 @@ def import_module(module_name, directory_service_hostname='127.0.0.1', port=9000
             directory_service_hostname,
             port),
         allow_none=True)
-    module_server_hostname, port, buffer_size, methods = \
-        modules_directory_service.import_module(
-            module_name,
-            cernthon_config.client_id,
-            cernthon_config.modules
-        )
-    server = Client(module_server_hostname, port, buffer_size, **methods)
-    return server
+    config_parameters = modules_directory_service.import_module(module_name, cernthon_config.client_id,
+                                                                cernthon_config.modules)
+    return Client(**config_parameters)
