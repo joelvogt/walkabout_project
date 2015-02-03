@@ -7,18 +7,9 @@ from Queue import Queue, Empty
 from collections import deque
 import tempfile
 
+from cernthon.connection.tcpsock import HEADER_DELIMITER, MESSAGE_HEADER_END, MESSAGE_HEADER
+
 from cernthon.connection import CLOSE_CONNECTION
-from cernthon.helpers import datalib
-
-
-BUFFER_SIZE = 1024
-
-CLIENTS = [
-    'default',
-    'Jython',
-    'CPython',
-    'PyPy'
-]
 
 
 def _process_wrapper(func, buffer_file, args_queue):
@@ -32,12 +23,13 @@ def _process_wrapper(func, buffer_file, args_queue):
 
 
 class BufferedMethod(object):
-    def __init__(self, func, endpoint):
+    def __init__(self, func, buffer_size, endpoint):
+        self._buffer_size = buffer_size
         self._args_queue = Queue()
         self._endpoint = endpoint
         self._buffer = deque()
         self._func = func
-        self._buffer_size = 0
+        self._current_buffer_size = 0
         self._temp_file = tempfile.NamedTemporaryFile()
         self._network_func = Thread(target=_process_wrapper,
                                     args=(func,
@@ -47,23 +39,23 @@ class BufferedMethod(object):
 
     def __call__(self, *args, **kwargs):
         self._buffer.append((args, kwargs))
-        self._buffer_size += 1
-        if self._buffer_size >= BUFFER_SIZE:
+        self._current_buffer_size += 1
+        if self._current_buffer_size >= self._current_buffer_size:
             args = ((self._buffer,), {})
             serialized = self._endpoint.to_send(args)
             self._buffer = deque()
             self._temp_file.write(serialized)
             self._temp_file.flush()
-            self._buffer_size = 0
+            self._current_buffer_size = 0
             size = len(serialized)
             self._args_queue.put(size)
 
     def __del__(self):
         self._network_func.join()
-        if self._buffer_size > 0:
+        if self._current_buffer_size > 0:
             args = ((self._buffer,), {})
             self._func(self._endpoint.to_send(args))
-            self._buffer_size = 0
+            self._current_buffer_size = 0
 
 
 def remote_function(function_ref, tcp_client_socket, buffer_size, endpoint, serialized_content):
@@ -76,12 +68,12 @@ def remote_function(function_ref, tcp_client_socket, buffer_size, endpoint, seri
               '%(header_end)s' \
               '%(message)s' % \
               dict(
-                  header=datalib.MESSAGE_HEADER,
+                  header=MESSAGE_HEADER,
                   function_ref=function_ref,
                   message_length=len(serialized_content),
                   message=serialized_content,
-                  delimiter=datalib.HEADER_DELIMITER,
-                  header_end=datalib.MESSAGE_HEADER_END)
+                  delimiter=HEADER_DELIMITER,
+                  header_end=MESSAGE_HEADER_END)
 
     tcp_client_socket.send(message)
     return_values = endpoint.to_receive(tcp_client_socket.recv(buffer_size))
@@ -123,7 +115,7 @@ class Client(object):
                                      self._buffer_size,
                                      self._endpoint)
             if name in self._buffered_methods:
-                self._last_method = BufferedMethod(func, self._endpoint)
+                self._last_method = BufferedMethod(func, self._buffer_size, self._endpoint)
             else:
                 self._last_method = serialized_arguments(func, self._endpoint)
         return self._last_method
