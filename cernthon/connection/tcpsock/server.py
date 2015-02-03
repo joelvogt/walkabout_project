@@ -123,8 +123,6 @@ class Server(object):
             return on_call
 
         networked_func = buffered_func
-        # for adapter in self._adapters:
-        # networked_func = base.function_adapter_mapper(networked_func, adapter)
         if buffered:
             self.buffered_methods.append(buffered_func.__name__)
             networked_func = buffered_function(networked_func)

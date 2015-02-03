@@ -4,8 +4,8 @@ modules = dict(
         buffer_size = 4096,
         connection = 'tcpsock',
         serialization = dict(
-            data = 'python_pickling',
-            results = 'python_pickling'
+            data='fast_json',
+            results='fast_json'
         )
     )
 )

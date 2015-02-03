@@ -34,6 +34,8 @@ class ModuleConfig(object):
 
     def client_configuration(self, server):
         config = self._config_cache[(server.hostname, server.port)]
+        # for adapter in self._adapters:
+        # networked_func = base.function_adapter_mapper(networked_func, adapter)
         return dict(server_socket=(server.hostname, server.port),
                     buffer_size=server.buffer_size,
                     unbuffered_methods=server.unbuffered_methods,
