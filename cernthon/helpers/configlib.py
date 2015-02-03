@@ -11,12 +11,10 @@ class ModuleConfig(object):
         module = '.%s' % module if module else ''
         return '%s.%s.%s%s' % ('cernthon', component_type, implementation, module)
 
-
     def __init__(self, hostname, port):
         self._hostname = hostname
         self._port = port
         self._config_cache = {}
-
 
     def server_factory(self, config):
         connection_module = importlib.import_module(
@@ -31,15 +29,15 @@ class ModuleConfig(object):
                                           port=self._port,
                                           buffer_size=config['buffer_size'],
                                           endpoint=endpoint)
-        self._config_cache[(server._hostname, server._port)] = config
+        self._config_cache[(server.hostname, server.port)] = config
         return server
 
     def client_configuration(self, server):
-        config = self._config_cache[(server._hostname, server._port)]
-        return dict(server_socket=(server._hostname, server._port),
-                    buffer_size=server._buffer_size,
-                    unbuffered_methods=server._unbuffered_methods,
-                    buffered_methods=server._buffered_methods,
+        config = self._config_cache[(server.hostname, server.port)]
+        return dict(server_socket=(server.hostname, server.port),
+                    buffer_size=server.buffer_size,
+                    unbuffered_methods=server.unbuffered_methods,
+                    buffered_methods=server.buffered_methods,
                     connection_module_url=ModuleConfig.get_python_object('connection', config['connection'], 'client'),
                     data_module_url=ModuleConfig.get_python_object('serialization', config['serialization']['data']),
                     results_module_url=ModuleConfig.get_python_object('serialization',

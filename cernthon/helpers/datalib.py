@@ -4,8 +4,11 @@ __author__ = u'Joël Vogt'
 import tempfile
 
 
-def string_to_int(value): return int(value) if '.' not in value and ord('0') <= ord(value[0]) <= ord(
-    '9') else value
+def string_to_int(value):
+    if '.' not in value and ord('0') <= ord(value[0]) <= ord('9'):
+        return int(value)
+    else:
+        return value
 
 
 def slice_evenly(arr, slice_size):

@@ -85,18 +85,18 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
 
 class Server(object):
     def __init__(self, hostname, port, buffer_size, endpoint):
-        self._hostname = hostname
-        self._port = port
+        self.hostname = hostname
+        self.port = port
+        self.buffer_size = buffer_size
+        self.buffered_methods = []
+        self.unbuffered_methods = []
         self._endpoint = endpoint
-        self._buffer_size = buffer_size
         self._remote_functions = []
         self._tcp_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._tcp_server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self._tcp_server_socket.bind((self._hostname, self._port))
+        self._tcp_server_socket.bind((self.hostname, self.port))
         self._tcp_server_socket.listen(5)
         self._ready = True
-        self._buffered_methods = []
-        self._unbuffered_methods = []
 
     def _register_function(self, func, name):
         self._remote_functions.append(func)
@@ -110,7 +110,7 @@ class Server(object):
             p = multiprocessing.Process(
                 target=_function_process,
                 args=(tcp_client_socket,
-                      self._buffer_size,
+                      self.buffer_size,
                       self._remote_functions,
                       self._endpoint))
             p.start()
@@ -126,8 +126,8 @@ class Server(object):
         # for adapter in self._adapters:
         # networked_func = base.function_adapter_mapper(networked_func, adapter)
         if buffered:
-            self._buffered_methods.append(buffered_func.__name__)
+            self.buffered_methods.append(buffered_func.__name__)
             networked_func = buffered_function(networked_func)
         else:
-            self._unbuffered_methods.append(buffered_func.__name__)
+            self.unbuffered_methods.append(buffered_func.__name__)
         self._register_function(networked_func, name=buffered_func.__name__)

@@ -3,10 +3,9 @@ __author__ = u'Joël Vogt'
 
 
 class SerializationEndpoint(object):
-    def __init__(self, send_func, receive_func, adapters=[]):
+    def __init__(self, send_func, receive_func):
         self._send_func = send_func
         self._receive_func = receive_func
-        self._adapters = adapters
 
     def to_send(self, *args, **kwargs):
         return self._send_func(*args, **kwargs)
