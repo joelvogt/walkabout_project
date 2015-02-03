@@ -15,26 +15,32 @@ class ModuleConfig(object):
     def __init__(self, hostname, port):
         self._hostname = hostname
         self._port = port
+        self._config_cache = {}
 
 
     def server_factory(self, config):
         connection_module = importlib.import_module(
-            ModuleConfig.get_python_object('connection', config.pop('connection'), 'server'))
-        serialization = config.pop('serialization')
+            ModuleConfig.get_python_object('connection', config['connection'], 'server'))
         receive_data_func = importlib.import_module(
-            ModuleConfig.get_python_object('serialization', serialization['data'])).deserialize
+            ModuleConfig.get_python_object('serialization', config['serialization']['data'])).deserialize
         return_results_func = importlib.import_module(
-            ModuleConfig.get_python_object('serialization', serialization['results'])).serialize
-        s_endpoint = SerializationEndpoint(send_func=return_results_func, receive_func=receive_data_func)
-        config['hostname'] = self._hostname
-        config['endpoint'] = s_endpoint
+            ModuleConfig.get_python_object('serialization', config['serialization']['results'])).serialize
+        endpoint = SerializationEndpoint(send_func=return_results_func, receive_func=receive_data_func)
         self._port += 1
-        config['port'] = self._port
-        return connection_module.Server(**config)
+        server = connection_module.Server(hostname=self._hostname,
+                                          port=self._port,
+                                          buffer_size=config['buffer_size'],
+                                          endpoint=endpoint)
+        self._config_cache[(server._hostname, server._port)] = config
+        return server
 
-    @staticmethod
-    def client_configuration(server):
+    def client_configuration(self, server):
+        config = self._config_cache[(server._hostname, server._port)]
         return dict(server_socket=(server._hostname, server._port),
                     buffer_size=server._buffer_size,
                     unbuffered_methods=server._unbuffered_methods,
-                    buffered_methods=server._buffered_methods)
+                    buffered_methods=server._buffered_methods,
+                    connection_module_url=ModuleConfig.get_python_object('connection', config['connection'], 'client'),
+                    data_module_url=ModuleConfig.get_python_object('serialization', config['serialization']['data']),
+                    results_module_url=ModuleConfig.get_python_object('serialization',
+                                                                      config['serialization']['results']))

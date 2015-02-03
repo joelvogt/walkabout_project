@@ -98,15 +98,12 @@ def serialized_arguments(func):
 
 
 class Client(object):
-    def __init__(self, server_socket, buffer_size, unbuffered_methods, buffered_methods=[]):
-        # if not buffered_methods:
-        # buffered_methods = []
+    def __init__(self, server_socket, buffer_size, unbuffered_methods, buffered_methods, endpoint):
         self._methods_cache = {}
         self._server_socket = tuple(server_socket)
         self._buffer_size = buffer_size
         self._last_method = None
         self._last_method_name = None
-        print('dbgug')
         self._buffered_methods = buffered_methods
         self._methods_registry = unbuffered_methods + buffered_methods
         self._tcp_client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

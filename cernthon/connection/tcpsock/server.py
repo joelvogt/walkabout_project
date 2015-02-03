@@ -2,8 +2,10 @@
 __author__ = u'Joël Vogt'
 import socket
 import multiprocessing
+
 from cernthon.connection import CLOSE_CONNECTION
 from cernthon.helpers import datalib
+
 
 TIMEOUT = 10
 

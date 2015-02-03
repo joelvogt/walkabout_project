@@ -4,7 +4,7 @@ import xmlrpclib
 import imp
 from collections import namedtuple
 
-from cernthon.connection.tcpsock.client import Client
+from cernthon.serialization import SerializationEndpoint
 import os
 
 
@@ -43,6 +43,18 @@ def import_module(module_name, directory_service_hostname='127.0.0.1', port=9000
             directory_service_hostname,
             port),
         allow_none=True)
-    config_parameters = modules_directory_service.import_module(module_name, cernthon_config.client_id,
-                                                                cernthon_config.modules)
-    return Client(**config_parameters)
+    config = modules_directory_service.import_module(module_name,
+                                                     cernthon_config.client_id,
+                                                     cernthon_config.modules)
+
+    client_module = __import__(config['connection_module_url'], fromlist=[''])
+    data_module = __import__(config['data_module_url'], fromlist=[''])
+    results_module = __import__(config['results_module_url'], fromlist=[''])
+    send_data_func = data_module.serialize
+    receive_results_func = results_module.deserialize
+    return client_module.Client(server_socket=config['server_socket'],
+                                buffer_size=config['buffer_size'],
+                                unbuffered_methods=config['unbuffered_methods'],
+                                buffered_methods=config['buffered_methods'],
+                                endpoint=SerializationEndpoint(send_func=send_data_func,
+                                                               receive_func=receive_results_func))

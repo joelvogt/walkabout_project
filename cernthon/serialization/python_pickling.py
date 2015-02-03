@@ -1,8 +1,12 @@
 # -*- coding:utf-8 -*-
 __author__ = u'Joël Vogt'
 import cPickle
+import sys
+import functools
 
-
-serialize = cPickle.dumps
+if sys.version_info[:3] > (2, 7, 0):
+    serialize = functools.partial(cPickle.dump, protocol=2)
+else:
+    serialize = cPickle.dumps
 
 deserialize = cPickle.loads

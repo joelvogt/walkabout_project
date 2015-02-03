@@ -1,6 +1,5 @@
 # -*- coding:utf-8 -*-
 __author__ = u'Joël Vogt'
-import sys
 import functools
 import cPickle
 import tempfile
