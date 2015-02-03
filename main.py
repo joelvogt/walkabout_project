@@ -27,7 +27,7 @@ config_options = dict(
 
 if __name__ == '__main__':
     config = ConfigParser.ConfigParser()
-    config.read('cernthon_server.config')
+    config.read('server.config')
     params = {}
     for key, value in sorted(
             [

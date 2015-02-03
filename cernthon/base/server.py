@@ -10,9 +10,7 @@ import os
 
 
 class ModulesDirectoryService(object):
-    def __init__(self, hostname='0.0.0.0', port=9000, modules=None):
-        if not modules:
-            modules = {}
+    def __init__(self, hostname, port, modules):
         self._do_run = True
         self._server = SimpleXMLRPCServer((hostname, port))  # , allow_none=True)
         try:

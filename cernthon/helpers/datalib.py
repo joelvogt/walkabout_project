@@ -9,7 +9,7 @@ import zlib
 MESSAGE_HEADER = 'HDR'
 MESSAGE_HEADER_END = 'EOH'
 HEADER_DELIMITER = '|'
-NETWORK_BUFFER_SIZE = 8192
+
 
 
 def string_to_int(value): return int(value) if '.' not in value and ord('0') <= ord(value[0]) <= ord(
@@ -53,8 +53,8 @@ deserialize_data = __deserialize_data_config()
 
 
 class InputStreamBuffer(object):
-    def __init__(self, data=None, file_name=None):
-        self._buffer_size = NETWORK_BUFFER_SIZE
+    def __init__(self, buffer_size, data=None, file_name=None):
+        self._buffer_size = buffer_size
         self._in_memory = [0, self._buffer_size]
         if file_name is not None:
             self._fd = open(file_name, 'w')
