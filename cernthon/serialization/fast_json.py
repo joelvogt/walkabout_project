@@ -1,9 +1,9 @@
 # -*- coding:utf-8 -*-
 __author__ = u'Joël Vogt'
 
-import czjson
+import simplejson
 
 
-serialize = czjson.dumps
+serialize = simplejson.dumps
 
-deserialize = czjson.loads
+deserialize = simplejson.loads
