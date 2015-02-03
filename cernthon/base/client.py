@@ -3,9 +3,11 @@ __author__ = u'Joël Vogt'
 import xmlrpclib
 import imp
 from collections import namedtuple
+import os
+import sys
+import time
 
 from cernthon.serialization import SerializationEndpoint
-import os
 
 
 config_file = os.path.join(os.curdir, 'config.py')
@@ -14,7 +16,7 @@ if os.path.exists(config_file):
     cernthon_config = imp.load_source('config', config_file)
 else:
     CernthonConfig = namedtuple('CernthonConfig', ['client_id', 'modules'])
-    client_id = 'osx_client'
+    client_id = '%s-%f' % (sys.platform, time.time())
     modules = dict(
         pixelman_logger=dict(
             buffer_size=4096,
