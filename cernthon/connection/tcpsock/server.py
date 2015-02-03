@@ -4,7 +4,8 @@ import socket
 import multiprocessing
 
 from cernthon.connection import CLOSE_CONNECTION
-from cernthon.helpers import datalib
+from cernthon.connection.tcpsock import HEADER_DELIMITER, MESSAGE_HEADER_END, MESSAGE_HEADER
+from cernthon.helpers.datalib import InputStreamBuffer
 
 
 TIMEOUT = 10
@@ -31,20 +32,20 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                 break
 
             if not remote_function:
-                if message[:3] != datalib.MESSAGE_HEADER:
+                if message[:3] != MESSAGE_HEADER:
                     return_value = ReferenceError(
                         'Message does not contain header information and a function reference')
                     frame = None
                     break
 
                 header, message = message.split('%(delimiter)s%(header_end)s' % dict(
-                    delimiter=datalib.HEADER_DELIMITER,
-                    header_end=datalib.MESSAGE_HEADER_END))
-                header, function, message_length = header.split(datalib.HEADER_DELIMITER)
+                    delimiter=HEADER_DELIMITER,
+                    header_end=MESSAGE_HEADER_END))
+                header, function, message_length = header.split(HEADER_DELIMITER)
                 try:
                     remote_function = remote_functions[int(function)]
                     total_data_size = int(message_length)
-                    input_buffer = datalib.InputStreamBuffer(data=message, buffer_size=buffer_size)
+                    input_buffer = InputStreamBuffer(data=message, buffer_size=buffer_size)
                 except IndexError:
                     return_value = AttributeError("Server side exception: \
                     Remote module doesn't have that function")

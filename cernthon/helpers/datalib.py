@@ -1,15 +1,7 @@
 # -*- coding:utf-8 -*-
 __author__ = u'Joël Vogt'
-import functools
-import cPickle
+
 import tempfile
-import zlib
-
-
-MESSAGE_HEADER = 'HDR'
-MESSAGE_HEADER_END = 'EOH'
-HEADER_DELIMITER = '|'
-
 
 
 def string_to_int(value): return int(value) if '.' not in value and ord('0') <= ord(value[0]) <= ord(
@@ -19,37 +11,6 @@ def string_to_int(value): return int(value) if '.' not in value and ord('0') <= 
 def slice_evenly(arr, slice_size):
     for i in xrange(0, len(arr), slice_size):
         yield arr[i:i + slice_size]
-
-
-def __serialize_data_config():
-    def compress(func):
-        def on_call(data):
-            return zlib.compress(func(data))
-
-        return on_call
-
-    python_interpreters = dict(
-        Jython=cPickle.dumps,
-        CPython=functools.partial(cPickle.dumps, protocol=2),
-        PyPy=functools.partial(cPickle.dumps, protocol=2)
-    )
-    return cPickle.dumps
-
-
-def decompress(func):
-    def on_call(data):
-        return func(zlib.decompress(data))
-
-    return on_call
-
-
-def __deserialize_data_config():
-    return cPickle.loads
-
-
-serialize_data = __serialize_data_config()
-
-deserialize_data = __deserialize_data_config()
 
 
 class InputStreamBuffer(object):
