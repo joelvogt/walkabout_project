@@ -7,9 +7,8 @@ from Queue import Queue, Empty
 from collections import deque
 import tempfile
 
-from cernthon.connection.tcpsock import HEADER_DELIMITER, MESSAGE_HEADER_END, MESSAGE_HEADER
-
-from cernthon.connection import CLOSE_CONNECTION
+from walkabout.connection.tcpsock import HEADER_DELIMITER, MESSAGE_HEADER_END, MESSAGE_HEADER
+from walkabout.connection import CLOSE_CONNECTION
 
 
 def _process_wrapper(func, buffer_file, args_queue):

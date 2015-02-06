@@ -1,4 +1,4 @@
-from cernthon.helpers.moduleslib import networked_function
+from walkabout.helpers.moduleslib import networked_function
 
 logfile = None
 file_name = None

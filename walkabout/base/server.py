@@ -1,5 +1,5 @@
 # -*- coding:utf-8 -*-
-from cernthon.helpers.configlib import ModuleConfig
+from walkabout.helpers.configlib import ModuleConfig
 
 __author__ = u'Joël Vogt'
 import imp

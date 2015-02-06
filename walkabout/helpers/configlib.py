@@ -2,14 +2,14 @@
 __author__ = u'Joël Vogt'
 import importlib
 
-from cernthon.serialization import SerializationEndpoint
+from walkabout.serialization import SerializationEndpoint
 
 
 class ModuleConfig(object):
     @staticmethod
     def get_python_object(component_type, implementation, module=None):
         module = '.%s' % module if module else ''
-        return '%s.%s.%s%s' % ('cernthon', component_type, implementation, module)
+        return '%s.%s.%s%s' % ('walkabout', component_type, implementation, module)
 
     def __init__(self, hostname, port):
         self._hostname = hostname

@@ -2,8 +2,8 @@
 
 import ConfigParser
 
-from cernthon.helpers.datalib import string_to_int
-from cernthon.base.server import ModulesDirectory
+from walkabout.helpers.datalib import string_to_int
+from walkabout.base.server import ModulesDirectory
 
 
 config_options = dict(

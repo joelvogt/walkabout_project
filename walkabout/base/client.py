@@ -7,7 +7,7 @@ import os
 import sys
 import time
 
-from cernthon.serialization import SerializationEndpoint
+from walkabout.serialization import SerializationEndpoint
 
 
 config_file = os.path.join(os.curdir, 'config.py')

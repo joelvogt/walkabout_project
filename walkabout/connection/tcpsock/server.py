@@ -3,9 +3,9 @@ __author__ = u'Joël Vogt'
 import socket
 import multiprocessing
 
-from cernthon.connection import CLOSE_CONNECTION
-from cernthon.connection.tcpsock import HEADER_DELIMITER, MESSAGE_HEADER_END, MESSAGE_HEADER
-from cernthon.helpers.datalib import InputStreamBuffer
+from walkabout.connection import CLOSE_CONNECTION
+from walkabout.connection.tcpsock import HEADER_DELIMITER, MESSAGE_HEADER_END, MESSAGE_HEADER
+from walkabout.helpers.datalib import InputStreamBuffer
 
 
 TIMEOUT = 10
