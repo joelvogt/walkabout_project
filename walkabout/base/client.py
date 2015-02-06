@@ -33,10 +33,10 @@ else:
 
 def import_module(module_name, directory_service_hostname='127.0.0.1', port=9000):
     """
-    Instantiates a remote module on the CERNthon server and returns a proxy object with the interface of that module.
+    Instantiates a remote module on the walkabout_project server and returns a proxy object with the interface of that module.
     :param module_name: The name of the remote module that the user wants to import
-    :param directory_service_hostname: The hostname or IP of the CERNthon server where the modules are hosted
-    :param port: The port number of the CERNthon directory serice
+    :param directory_service_hostname: The hostname or IP of the walkabout_project server where the modules are hosted
+    :param port: The port number of the walkabout_project directory serice
     :return: A Client object if the module is found, otherwise an ImportError error
     """
     modules_directory_service = xmlrpclib.ServerProxy(
