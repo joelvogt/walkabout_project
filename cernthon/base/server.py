@@ -9,7 +9,7 @@ from multiprocessing import Process
 import os
 
 
-class ModulesDirectoryService(object):
+class ModulesDirectory(object):
     def __init__(self, hostname, port, modules):
         self._do_run = True
         self._server = SimpleXMLRPCServer((hostname, port))  # , allow_none=True)
@@ -25,7 +25,8 @@ class ModulesDirectoryService(object):
 
     def bind_module(self, modules_process, module_binder_instance, module_ref):
         module = imp.load_source(module_ref['name'], module_ref['file'])
-        map(lambda x: module_binder_instance(*x), module.networked_function.functions_registry)
+        for x in module.networked_function.functions_registry:
+            module_binder_instance(*x)
         module.networked_function.functions_registry = []
         module_binder_process = Process(target=module_binder_instance.run, name=module_ref['name'])
         modules_process[module_ref['name']] = dict(module_process=module_binder_process,

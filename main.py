@@ -3,7 +3,7 @@
 import ConfigParser
 
 from cernthon.helpers.datalib import string_to_int
-from cernthon.base.server import ModulesDirectoryService
+from cernthon.base.server import ModulesDirectory
 
 
 config_options = dict(
@@ -45,5 +45,5 @@ if __name__ == '__main__':
             params[key] = value
         else:
             params[key].update(value)
-    directory = ModulesDirectoryService(modules=params['module'], **params['directory_service'])
+    directory = ModulesDirectory(modules=params['module'], **params['directory_service'])
     directory.on_start()
