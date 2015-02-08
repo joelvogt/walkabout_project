@@ -76,6 +76,8 @@ def remote_function(function_ref, tcp_client_socket, buffer_size, endpoint, seri
 
     tcp_client_socket.send(message)
     return_values = endpoint.to_receive(tcp_client_socket.recv(buffer_size))
+    if return_values is None:  # TODO test if non-blocking is faster for functions that have no return value.
+        tcp_client_socket.setblocking(0)
     if isinstance(return_values, Exception):
         raise return_values
     else:
@@ -101,6 +103,7 @@ class Client(object):
         self._methods_registry = unbuffered_methods + buffered_methods
         self._tcp_client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._tcp_client_socket.connect(self._server_socket)
+        # self._tcp_client_socket.setblocking(0)
 
     def __getattr__(self, name):
         if name not in self._methods_registry:
