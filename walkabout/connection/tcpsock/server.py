@@ -77,7 +77,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                 return_value = e
 
         if return_value != -1:
-            if not (isinstance(return_value, list) and all(return_value)):
+            if not (isinstance(return_value, list) and not (all(return_value))):
                 tcp_client_socket.send(endpoint.to_send(return_value))
             remote_function = None
 
