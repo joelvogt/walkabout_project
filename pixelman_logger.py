@@ -11,7 +11,7 @@ def save_file(filename):
     logfile = open(filename, 'w')
 
 
-@networked_function(buffered=False)
+@networked_function(buffered=True)
 def write(event):
     global logfile
     print('event')
@@ -24,7 +24,7 @@ def write(event):
     # return h2
 
 
-@networked_function(buffered=True)
+@networked_function(buffered=False)
 def do_something(func, *args, **kwargs):
     print(type(func))
 
