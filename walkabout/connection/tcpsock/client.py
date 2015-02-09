@@ -54,7 +54,7 @@ class BufferedMethod(object):
         self._network_func.join()
         if self._current_buffer_size > 0:
             args = ((self._buffer,), {})
-            self._func(self._endpoint.to_send(args))
+            self._func(self._endpoint.to_send(self))
             self._current_buffer_size = 0
 
 
