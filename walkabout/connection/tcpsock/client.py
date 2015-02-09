@@ -40,7 +40,7 @@ class BufferedMethod(object):
         self._buffer.append((args, kwargs))
 
         self._current_buffer_size += 1
-        if self._current_buffer_size >= self._current_buffer_size:
+        if self._current_buffer_size >= self._buffer_size:
             # args = ((self._buffer), {})
             serialized = self._endpoint.to_send(self._buffer)
             self._buffer = deque()
