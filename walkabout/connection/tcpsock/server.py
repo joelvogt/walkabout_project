@@ -78,6 +78,8 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                 else:
                     remote_function(t)
             except Exception as e:
+                print('error')
+                print(e)
                 return_value = e
 
         if return_value != -1:
