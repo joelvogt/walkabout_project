@@ -85,7 +85,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                     print(len(t))
                     print(type(t))
                     print(len(list(t)))
-                    remote_function(list(t))
+                    # remote_function(list(t))
                     print('debug 3.1')
             except Exception as e:
                 print('error')

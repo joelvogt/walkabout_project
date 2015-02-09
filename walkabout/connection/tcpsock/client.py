@@ -23,7 +23,7 @@ def _process_wrapper(func, buffer_file, args_queue):
 
 class BufferedMethod(object):
     def __init__(self, func, buffer_size, endpoint):
-        self._buffer_size = buffer_size * 10
+        self._buffer_size = buffer_size * 100
         self._args_queue = Queue()
         self._endpoint = endpoint
         self._buffer = deque()
