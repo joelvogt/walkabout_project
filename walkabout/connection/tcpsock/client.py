@@ -16,7 +16,7 @@ def _process_wrapper(func, buffer_file, args_queue):
     fd = open(buffer_file)
     while True:
         try:
-            size = args_queue.get(timeout=100)
+            size = args_queue.get(timeout=10)
             func(fd.read(size))
         except Empty:
             break
