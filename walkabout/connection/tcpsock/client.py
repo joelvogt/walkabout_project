@@ -121,7 +121,7 @@ class Client(object):
             if name in self._buffered_methods:
                 self._last_method = BufferedMethod(func, self._buffer_size, self._endpoint)
             else:
-                return_handdler = handle_return_value(self._tcp_client_socket,
+                return_handdler = functools.partial(handle_return_value, self._tcp_client_socket,
                                                       self._buffer_size,
                                                       self._endpoint)
                 self._last_method = serialized_arguments(func, return_handdler, self._endpoint)
