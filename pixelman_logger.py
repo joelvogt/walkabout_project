@@ -11,7 +11,7 @@ def save_file(filename):
     logfile = open(filename, 'w')
 
 
-@networked_function(buffered=False)
+@networked_function(buffered=True)
 def write(event):
     global logfile
     print('event')
