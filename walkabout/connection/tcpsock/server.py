@@ -70,6 +70,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
             break
 
         if frame:
+            print('debug 0')
             t = endpoint.to_receive(frame)
             print('debug 1')
             try:
@@ -127,7 +128,6 @@ class Server(object):
     def __call__(self, buffered_func, buffered=False):
         def buffered_function(func):
             def on_call(params):
-                print('debug on call')
                 return [func(*args, **kwargs) for args, kwargs in params]
 
             return on_call
