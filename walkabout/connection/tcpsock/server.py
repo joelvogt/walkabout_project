@@ -118,8 +118,6 @@ class Server(object):
     def __call__(self, buffered_func, buffered=False):
         def buffered_function(func):
             def on_call(params):
-                print(len(params))
-                # buffered_args, _ = params
                 return [func(*args, **kwargs) for args, kwargs in params]
 
             return on_call
