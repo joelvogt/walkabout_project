@@ -14,10 +14,9 @@ def save_file(filename):
 @networked_function(buffered=True)
 def write(event):
     global logfile
-    print('event')
     logfile.write(event)
     logfile.flush()
-    logfile.close()
+    # logfile.close()
     # fd = open(file_name)
     # h2 = hash(''.join(fd.readlines()))
     # fd.close()

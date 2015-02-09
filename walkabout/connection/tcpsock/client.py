@@ -6,6 +6,7 @@ from threading import Thread
 from Queue import Queue, Empty
 from collections import deque
 import tempfile
+import sys
 
 from walkabout.connection.tcpsock import HEADER_DELIMITER, MESSAGE_HEADER_END, MESSAGE_HEADER
 from walkabout.connection import CLOSE_CONNECTION
@@ -15,7 +16,7 @@ def _process_wrapper(func, buffer_file, args_queue):
     fd = open(buffer_file)
     while True:
         try:
-            size = args_queue.get(timeout=1)
+            size = args_queue.get(timeout=100)
             func(fd.read(size))
         except Empty:
             break
@@ -24,7 +25,7 @@ def _process_wrapper(func, buffer_file, args_queue):
 # TODO bug fixing...
 class BufferedMethod(object):
     def __init__(self, func, buffer_size, endpoint):
-        self._buffer_size = buffer_size / 100
+        self._buffer_size = buffer_size
         self._args_queue = Queue()
         self._endpoint = endpoint
         self._buffer = deque()
@@ -38,10 +39,10 @@ class BufferedMethod(object):
         self._network_func.start()
 
     def __call__(self, *args, **kwargs):
-        self._buffer.append((args, kwargs))
-        self._current_buffer_size += 1
+        arg_input = (args, kwargs)
+        self._current_buffer_size += sys.getsizeof(arg_input)
+        self._buffer.append(arg_input)
         if self._current_buffer_size >= self._buffer_size:
-            print('fp')
             args = ((self._buffer,), {})
             serialized = self._endpoint.to_send(args)
             self._buffer = deque()
