@@ -23,7 +23,7 @@ def _process_wrapper(func, buffer_file, args_queue):
 
 class BufferedMethod(object):
     def __init__(self, func, buffer_size, endpoint):
-        self._buffer_size = buffer_size
+        self._buffer_size = buffer_size * 10
         self._args_queue = Queue()
         self._endpoint = endpoint
         self._buffer = deque()
@@ -38,9 +38,10 @@ class BufferedMethod(object):
 
     def __call__(self, *args, **kwargs):
         self._buffer.append((args, kwargs))
+
         self._current_buffer_size += 1
         if self._current_buffer_size >= self._current_buffer_size:
-            args = ((self._buffer,), {})
+            args = ((self._buffer), {})
             serialized = self._endpoint.to_send(args)
             self._buffer = deque()
             self._temp_file.write(serialized)
@@ -101,7 +102,6 @@ class Client(object):
         self._methods_registry = unbuffered_methods + buffered_methods
         self._tcp_client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._tcp_client_socket.connect(self._server_socket)
-        # self._tcp_client_socket.setblocking(0)
 
     def __getattr__(self, name):
         if name not in self._methods_registry:
