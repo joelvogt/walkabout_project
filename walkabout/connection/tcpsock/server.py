@@ -77,10 +77,13 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                 if len(t) == 2:
                     print('debug 2')
                     args, kwargs = t  # endpoint.to_receive(frame)
+                    print('debug 2.1')
                     return_value = remote_function(*args, **kwargs)
+                    print('debug 2.2')
                 else:
                     print('debug 3')
                     remote_function(t)
+                    print('debug 3.1')
             except Exception as e:
                 print('error')
                 print(e)
