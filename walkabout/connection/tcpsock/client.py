@@ -21,9 +21,10 @@ def _process_wrapper(func, buffer_file, args_queue):
             break
 
 
+# TODO bug fixing...
 class BufferedMethod(object):
     def __init__(self, func, buffer_size, endpoint):
-        self._buffer_size = buffer_size * 100
+        self._buffer_size = 10
         self._args_queue = Queue()
         self._endpoint = endpoint
         self._buffer = deque()
@@ -38,12 +39,10 @@ class BufferedMethod(object):
 
     def __call__(self, *args, **kwargs):
         self._buffer.append((args, kwargs))
-        print(self._current_buffer_size)
         self._current_buffer_size += 1
         if self._current_buffer_size >= self._buffer_size:
-            print('bug')
             args = ((self._buffer), {})
-            serialized = self._endpoint.to_send(self._buffer)
+            serialized = self._endpoint.to_send(args)
             self._buffer = deque()
             self._temp_file.write(serialized)
             self._temp_file.flush()

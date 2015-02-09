@@ -1,7 +1,7 @@
 client_id = 'osx_client'
 modules = dict(
     pixelman_logger = dict(
-        buffer_size = 4096,
+        buffer_size=12288,
         connection = 'tcpsock',
         serialization = dict(
             data='python_pickling',
