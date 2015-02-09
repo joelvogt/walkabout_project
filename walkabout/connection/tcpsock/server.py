@@ -70,13 +70,9 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
             break
 
         if frame:
-            t = endpoint.to_receive(frame)
+            args, kwargs = endpoint.to_receive(frame)
             try:
-                if len(t) == 2:
-                    args, kwargs = t  # endpoint.to_receive(frame)
-                    return_value = remote_function(*args, **kwargs)
-                else:
-                    remote_function(t)
+                return_value = remote_function(*args, **kwargs)
             except Exception as e:
                 return_value = e
 

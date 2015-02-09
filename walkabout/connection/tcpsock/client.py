@@ -38,10 +38,11 @@ class BufferedMethod(object):
 
     def __call__(self, *args, **kwargs):
         self._buffer.append((args, kwargs))
-
+        print(self._current_buffer_size)
         self._current_buffer_size += 1
         if self._current_buffer_size >= self._buffer_size:
-            # args = ((self._buffer), {})
+            print('bug')
+            args = ((self._buffer), {})
             serialized = self._endpoint.to_send(self._buffer)
             self._buffer = deque()
             self._temp_file.write(serialized)
@@ -54,7 +55,7 @@ class BufferedMethod(object):
         self._network_func.join()
         if self._current_buffer_size > 0:
             args = ((self._buffer,), {})
-            self._func(self._endpoint.to_send(self))
+            self._func(self._endpoint.to_send(args))
             self._current_buffer_size = 0
 
 
