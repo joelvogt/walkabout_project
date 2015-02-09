@@ -6,7 +6,6 @@ from threading import Thread
 from Queue import Queue, Empty
 from collections import deque
 import tempfile
-import sys
 
 from walkabout.connection.tcpsock import HEADER_DELIMITER, MESSAGE_HEADER_END, MESSAGE_HEADER
 from walkabout.connection import CLOSE_CONNECTION
@@ -40,7 +39,7 @@ class BufferedMethod(object):
 
     def __call__(self, *args, **kwargs):
         arg_input = (args, kwargs)
-        self._current_buffer_size += sys.getsizeof(arg_input)
+        self._current_buffer_size += len(args)  # sys.getsizeof(arg_input)
         self._buffer.append(arg_input)
         if self._current_buffer_size >= self._buffer_size:
             args = ((self._buffer,), {})
