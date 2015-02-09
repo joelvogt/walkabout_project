@@ -60,7 +60,7 @@ class BufferedMethod(object):
             self._current_buffer_size = 0
 
 
-def remote_function(function_ref, tcp_client_socket, buffer_size, endpoint, serialized_content):
+def remote_function(function_ref, tcp_client_socket, serialized_content):
     message = '%(header)s' \
               '%(delimiter)s' \
               '%(function_ref)d' \
@@ -78,6 +78,9 @@ def remote_function(function_ref, tcp_client_socket, buffer_size, endpoint, seri
                   header_end=MESSAGE_HEADER_END)
 
     tcp_client_socket.send(message)
+
+
+def handle_return_value(tcp_client_socket, buffer_size, endpoint):
     return_values = endpoint.to_receive(tcp_client_socket.recv(buffer_size))
     if isinstance(return_values, Exception):
         raise return_values
@@ -85,9 +88,10 @@ def remote_function(function_ref, tcp_client_socket, buffer_size, endpoint, seri
         return return_values
 
 
-def serialized_arguments(func, endpoint):
+def serialized_arguments(func, return_handler, endpoint):
     def on_call(*args, **kwargs):
-        return func(endpoint.to_send((args, kwargs)))
+        func(endpoint.to_send((args, kwargs)))
+        return return_handler()
 
     return on_call
 
@@ -113,13 +117,14 @@ class Client(object):
             self._last_method_name = name
             func = functools.partial(remote_function,
                                      self._methods_registry.index(name),
-                                     self._tcp_client_socket,
-                                     self._buffer_size,
-                                     self._endpoint)
+                                     self._tcp_client_socket)
             if name in self._buffered_methods:
                 self._last_method = BufferedMethod(func, self._buffer_size, self._endpoint)
             else:
-                self._last_method = serialized_arguments(func, self._endpoint)
+                return_handdler = handle_return_value(self._tcp_client_socket,
+                                                      self._buffer_size,
+                                                      self._endpoint)
+                self._last_method = serialized_arguments(func, return_handdler, self._endpoint)
         return self._last_method
 
     def __del__(self):
