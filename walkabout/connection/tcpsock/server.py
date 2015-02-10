@@ -27,6 +27,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                 print('debug closing connection')
                 print(return_value)
                 is_used_by_client = False
+                frame = None
 
                 break
 
