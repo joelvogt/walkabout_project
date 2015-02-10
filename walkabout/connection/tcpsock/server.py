@@ -35,7 +35,6 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
 
             if not remote_function:
                 if MESSAGE_HEADER_END not in message:
-                    print(message[:10])
                     return_value = ReferenceError(
                         'Message does not contain header information and a function reference')
                     frame = None
@@ -80,6 +79,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                 return_value = e
 
         if return_value != -1:
+            print('ending')
             tcp_client_socket.send(endpoint.to_send(return_value))
             remote_function = None
 
