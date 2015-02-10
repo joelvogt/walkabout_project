@@ -74,12 +74,13 @@ class BufferedMethod(object):
         self._current_buffer_size += sys.getsizeof(arg_input)
         # print(sys.getsizeof(arg_input))
         self._buffer.append(arg_input)
-        if self._current_buffer_size >= 10:
+        if self._current_buffer_size >= self._buffer_size:
             to_serial_args = ((self._buffer,), {})
             self._buffer = deque()
             self._current_buffer_size = 0
             serialized = self._endpoint.to_send(to_serial_args)
             size = len(serialized)
+            print(size)
             self._temp_file.write(serialized)
             self._temp_file.flush()
 

@@ -83,6 +83,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
 
 
             else:
+                print('buffer size {0}'.format(input_buffer.size))
                 continue
             break
         input_buffer = None
