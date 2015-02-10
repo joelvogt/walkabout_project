@@ -72,7 +72,7 @@ class BufferedMethod(object):
         self._current_buffer_size += 1  # sys.getsizeof(arg_input)
         # print(sys.getsizeof(arg_input))
         self._buffer.append(arg_input)
-        if self._current_buffer_size >= 50:
+        if self._current_buffer_size >= 10:
             to_serial_args = ((self._buffer,), {})
             self._buffer = deque()
             self._current_buffer_size = 0
@@ -110,7 +110,6 @@ def remote_function(function_ref, tcp_client_socket, serialized_content):
                   message=serialized_content,
                   delimiter=HEADER_DELIMITER,
                   header_end=MESSAGE_HEADER_END)
-    print(message[:30])
     tcp_client_socket.send(message)
 
 

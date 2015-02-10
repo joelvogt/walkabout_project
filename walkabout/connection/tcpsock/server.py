@@ -69,6 +69,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                 print('buffer {0} datasize {1}'.format(input_buffer.size, total_data_size))
                 input_buffer._fd.seek(0)
                 print(len(''.join(input_buffer._fd.readlines())))
+                frame = None
                 return_value = OverflowError(
                     'Server side exception: \
                     The size {0} is longer than \
@@ -90,8 +91,6 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
             try:
                 return_value = remote_function(*args, **kwargs)
             except Exception as e:
-                print('exection thrown')
-                print(e)
                 return_value = e
 
         if return_value != -1:
