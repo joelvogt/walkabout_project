@@ -24,6 +24,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
         while is_used_by_client:
             message = tcp_client_socket.recv(buffer_size)
             if CLOSE_CONNECTION == message:
+                print('debug closing connection')
                 tcp_client_socket.send(endpoint.to_send(CLOSE_CONNECTION))
                 break
 
