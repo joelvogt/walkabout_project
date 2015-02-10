@@ -1,5 +1,3 @@
-#!env/bin/python
-
 import ConfigParser
 
 from walkabout.helpers.datalib import string_to_int

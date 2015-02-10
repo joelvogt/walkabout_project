@@ -6,6 +6,7 @@ from threading import Thread
 from Queue import Queue, Empty
 from collections import deque
 import tempfile
+import sys
 
 from walkabout.connection.tcpsock import HEADER_DELIMITER, MESSAGE_HEADER_END, MESSAGE_HEADER
 from walkabout.connection import CLOSE_CONNECTION
@@ -21,9 +22,25 @@ def _process_wrapper(func, buffer_file, args_queue):
             break
 
 
+def handle_return_value(tcp_client_socket, buffer_size, endpoint):
+    return_values = endpoint.to_receive(tcp_client_socket.recv(buffer_size))
+    if isinstance(return_values, Exception):
+        raise return_values
+    else:
+        return return_values
+
+
+def serialized_arguments(func, return_handler, endpoint):
+    def on_call(*args, **kwargs):
+        func(endpoint.to_send((args, kwargs)))
+        return return_handler()
+
+    return on_call
+
+
 # TODO bug fixing...
 class BufferedMethod(object):
-    def __init__(self, func, buffer_size, endpoint):
+    def __init__(self, func, buffer_size, endpoint, return_handler):
         self._buffer_size = buffer_size
         self._args_queue = Queue()
         self._endpoint = endpoint
@@ -35,11 +52,23 @@ class BufferedMethod(object):
                                     args=(func,
                                           self._temp_file.name,
                                           self._args_queue))
+
         self._network_func.start()
+
+        def return_value_listener(_return_handler):
+            while True:
+                print('fo')
+                res = _return_handler()
+                print('ba')
+                if res == CLOSE_CONNECTION:
+                    break
+
+        self._return_handler = Thread(target=return_value_listener, args=(return_handler,))
+        self._return_handler.start()
 
     def __call__(self, *args, **kwargs):
         arg_input = (args, kwargs)
-        self._current_buffer_size += len(args)  # sys.getsizeof(arg_input)
+        self._current_buffer_size += sys.getsizeof(arg_input)
         self._buffer.append(arg_input)
         if self._current_buffer_size >= self._buffer_size:
             args = ((self._buffer,), {})
@@ -56,6 +85,8 @@ class BufferedMethod(object):
         if self._current_buffer_size > 0:
             args = ((self._buffer,), {})
             self._func(self._endpoint.to_send(args))
+            self._func(self._endpoint.to_send(CLOSE_CONNECTION))
+            self._return_handler.join()
             self._current_buffer_size = 0
 
 
@@ -78,21 +109,6 @@ def remote_function(function_ref, tcp_client_socket, serialized_content):
 
     tcp_client_socket.send(message)
 
-
-def handle_return_value(tcp_client_socket, buffer_size, endpoint):
-    return_values = endpoint.to_receive(tcp_client_socket.recv(buffer_size))
-    if isinstance(return_values, Exception):
-        raise return_values
-    else:
-        return return_values
-
-
-def serialized_arguments(func, return_handler, endpoint):
-    def on_call(*args, **kwargs):
-        func(endpoint.to_send((args, kwargs)))
-        return return_handler()
-
-    return on_call
 
 
 class Client(object):
@@ -117,14 +133,16 @@ class Client(object):
             func = functools.partial(remote_function,
                                      self._methods_registry.index(name),
                                      self._tcp_client_socket)
+            return_handler = functools.partial(handle_return_value,
+                                               self._tcp_client_socket,
+                                               self._buffer_size,
+                                               self._endpoint)
+
             if name in self._buffered_methods:
-                self._last_method = BufferedMethod(func, self._buffer_size, self._endpoint)
+                self._last_method = BufferedMethod(func, self._buffer_size, self._endpoint, return_handler)
             else:
-                return_handdler = functools.partial(handle_return_value,
-                                                    self._tcp_client_socket,
-                                                    self._buffer_size,
-                                                    self._endpoint)
-                self._last_method = serialized_arguments(func, return_handdler, self._endpoint)
+
+                self._last_method = serialized_arguments(func, return_handler, self._endpoint)
         return self._last_method
 
     def __del__(self):
