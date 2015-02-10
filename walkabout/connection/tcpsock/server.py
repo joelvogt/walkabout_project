@@ -4,7 +4,7 @@ import socket
 import multiprocessing
 
 from walkabout.connection import CLOSE_CONNECTION
-from walkabout.connection.tcpsock import HEADER_DELIMITER, MESSAGE_HEADER_END
+from walkabout.connection.tcpsock import HEADER_DELIMITER, MESSAGE_HEADER_END, MESSAGE_HEADER
 from walkabout.helpers.datalib import InputStreamBuffer
 
 
@@ -32,12 +32,13 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                 break
 
             if not message:
+                print('Not message')
                 is_used_by_client = False
                 return_value = -1
                 break
 
             if not remote_function:
-                if MESSAGE_HEADER_END not in message:
+                if message[:3] != MESSAGE_HEADER:
                     # print(message[:30])
                     return_value = ReferenceError(
                         'Message does not contain header information and a function reference')
@@ -62,6 +63,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
 
             if total_data_size < input_buffer.size:
                 print('buffer {0} datasize {1}'.format(input_buffer.size, total_data_size))
+                print(len(''.join(input_buffer._fd.readlines())))
                 return_value = OverflowError(
                     'Server side exception: \
                     The size {0} is longer than \
