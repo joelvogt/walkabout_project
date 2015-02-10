@@ -63,6 +63,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                     input_buffer = None
                     break
             else:
+                print('extending message of size {0}'.format(len(message)))
                 input_buffer.extend(message)
 
             if total_data_size < input_buffer.size:
@@ -93,6 +94,8 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                 return_value = e
 
         if return_value != -1:
+            if isinstance(return_value, Exception):
+                is_used_by_client = False
             tcp_client_socket.send(endpoint.to_send(return_value))
             remote_function = None
             return_value = -1
