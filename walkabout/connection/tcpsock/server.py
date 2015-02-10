@@ -19,7 +19,6 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
     None can be returned by functions without explicit return value"""
     return_value = -1
     frame = None
-    rest = ''
     is_used_by_client = True
     while is_used_by_client:
         while is_used_by_client:
@@ -47,8 +46,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                         'Message does not contain header information and a function reference')
                     frame = None
                     break
-                message = ''.join([rest, message])
-                rest = ''
+
                 header, message = message.split('%(delimiter)s%(header_end)s' % dict(
                     delimiter=HEADER_DELIMITER,
                     header_end=MESSAGE_HEADER_END))
@@ -68,17 +66,16 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                 input_buffer.extend(message)
 
             if total_data_size < input_buffer.size:
-                # print('buffer {0} datasize {1}'.format(input_buffer.size, total_data_size))
-                # input_buffer._fd.seek(0)
-                # print(len(''.join(input_buffer._fd.readlines())))
-                frame = input_buffer[0:total_data_size]
-                rest = input_buffer[total_data_size:input_buffer.size]
-                # return_value = OverflowError(
-                # 'Server side exception: \
-                #     The size {0} is longer than \
-                #     the expected message size {1}'.format(
-                #         input_buffer.size,
-                #         total_data_size))
+                print('buffer {0} datasize {1}'.format(input_buffer.size, total_data_size))
+                input_buffer._fd.seek(0)
+                print(len(''.join(input_buffer._fd.readlines())))
+                frame = None
+                return_value = OverflowError(
+                    'Server side exception: \
+                    The size {0} is longer than \
+                    the expected message size {1}'.format(
+                        input_buffer.size,
+                        total_data_size))
 
             elif total_data_size == input_buffer.size:
                 print('total equal buffer')
@@ -101,7 +98,6 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                 is_used_by_client = False
             tcp_client_socket.send(endpoint.to_send(return_value))
             remote_function = None
-            is_used_by_client = False
             return_value = -1
     print('exit loop')
     tcp_client_socket.send(endpoint.to_send(CLOSE_CONNECTION))

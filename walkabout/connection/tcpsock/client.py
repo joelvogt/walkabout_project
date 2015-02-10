@@ -1,4 +1,6 @@
 # -*- coding:utf-8 -*-
+import sys
+
 __author__ = u'Joël Vogt'
 import functools
 import socket
@@ -69,7 +71,7 @@ class BufferedMethod(object):
 
     def __call__(self, *args, **kwargs):
         arg_input = (args, kwargs)
-        self._current_buffer_size += 1  # sys.getsizeof(arg_input)
+        self._current_buffer_size += sys.getsizeof(arg_input)
         # print(sys.getsizeof(arg_input))
         self._buffer.append(arg_input)
         if self._current_buffer_size >= 10:
