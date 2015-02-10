@@ -6,7 +6,7 @@ from threading import Thread
 from Queue import Queue, Empty
 from collections import deque
 import tempfile
-import sys
+import marshal
 
 from walkabout.connection.tcpsock import HEADER_DELIMITER, MESSAGE_HEADER_END, MESSAGE_HEADER
 from walkabout.connection import CLOSE_CONNECTION
@@ -70,12 +70,13 @@ class BufferedMethod(object):
 
     def __call__(self, *args, **kwargs):
         arg_input = (args, kwargs)
-        self._current_buffer_size += sys.getsizeof(arg_input)
+        self._current_buffer_size += len(marshal.dumps(arg_input))
         self._buffer.append(arg_input)
         if self._current_buffer_size >= self._buffer_size:
-            args = ((self._buffer,), {})
+            print(len(self._buffer))
+            args = (([self._buffer.popleft() for i in range(len(self._buffer))],), {})
             serialized = self._endpoint.to_send(args)
-            self._buffer = deque()
+            # self._buffer = deque()
             self._temp_file.write(serialized)
             self._temp_file.flush()
             self._current_buffer_size = 0

@@ -24,7 +24,6 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
         while is_used_by_client:
             message = tcp_client_socket.recv(buffer_size)
             if CLOSE_CONNECTION == message:
-                print('DEBUG close connection server')
                 tcp_client_socket.send(endpoint.to_send(CLOSE_CONNECTION))
                 break
 
@@ -57,11 +56,10 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                 input_buffer.extend(message)
 
             if total_data_size < input_buffer.size:
-                print('Overflow ')
                 return_value = OverflowError(
                     'Server side exception: \
-                    The size {} is longer than \
-                    the expected message size {}'.format(
+                    The size {0} is longer than \
+                    the expected message size {1}'.format(
                         input_buffer.size,
                         total_data_size))
 
