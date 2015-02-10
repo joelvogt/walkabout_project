@@ -90,6 +90,8 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
             try:
                 return_value = remote_function(*args, **kwargs)
             except Exception as e:
+                print('exection thrown')
+                print(e)
                 return_value = e
 
         if return_value != -1:
