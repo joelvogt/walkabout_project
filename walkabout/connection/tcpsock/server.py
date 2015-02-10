@@ -26,7 +26,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
             if CLOSE_CONNECTION == message:
                 print('debug closing connection')
                 print(return_value)
-                tcp_client_socket.send(CLOSE_CONNECTION)
+                is_used_by_client = False
 
                 break
 
@@ -86,7 +86,8 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
         if return_value != -1:
             tcp_client_socket.send(endpoint.to_send(return_value))
             remote_function = None
-
+    print('exit loop')
+    tcp_client_socket.send(endpoint.to_send(CLOSE_CONNECTION))
     tcp_client_socket.close()
 
 
