@@ -57,6 +57,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                     return_value = AttributeError("Server side exception: \
                     Remote module doesn't have the function you tried to call")
                     frame = None
+                    input_buffer = None
                     break
             else:
                 input_buffer.extend(message)
@@ -91,6 +92,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
         if return_value != -1:
             tcp_client_socket.send(endpoint.to_send(return_value))
             remote_function = None
+            return_value = -1
     print('exit loop')
     tcp_client_socket.send(endpoint.to_send(CLOSE_CONNECTION))
     tcp_client_socket.close()
