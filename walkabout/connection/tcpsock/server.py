@@ -57,6 +57,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                 input_buffer.extend(message)
 
             if total_data_size < input_buffer.size:
+                print('Overflow ')
                 return_value = OverflowError(
                     'Server side exception: \
                     The size {} is longer than \
