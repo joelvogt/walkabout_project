@@ -90,8 +90,8 @@ class BufferedMethod(object):
             print('sizd above 0')
             args = ((self._buffer,), {})
             self._func(self._endpoint.to_send(args))
-            self._return_handler.join()
             self._current_buffer_size = 0
+        self._return_handler.join()
 
 
 def remote_function(function_ref, tcp_client_socket, serialized_content):

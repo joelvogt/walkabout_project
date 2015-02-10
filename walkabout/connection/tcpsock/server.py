@@ -25,7 +25,9 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
             message = tcp_client_socket.recv(buffer_size)
             if CLOSE_CONNECTION == message:
                 print('debug closing connection')
-                tcp_client_socket.send(endpoint.to_send(CLOSE_CONNECTION))
+                print(return_value)
+                tcp_client_socket.send(CLOSE_CONNECTION)
+
                 break
 
             if not message:
@@ -71,7 +73,6 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                 frame = input_buffer[0:input_buffer.size]
 
             else:
-                print('somethin')
                 continue
             break
 
