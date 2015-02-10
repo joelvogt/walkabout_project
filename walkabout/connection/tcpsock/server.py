@@ -72,6 +72,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
             elif total_data_size == input_buffer.size:
                 print('total equal buffer')
                 frame = input_buffer[0:input_buffer.size]
+                input_buffer = None
 
             else:
                 continue
