@@ -98,6 +98,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                 is_used_by_client = False
             tcp_client_socket.send(endpoint.to_send(return_value))
             remote_function = None
+            is_used_by_client = False
             return_value = -1
     print('exit loop')
     tcp_client_socket.send(endpoint.to_send(CLOSE_CONNECTION))
