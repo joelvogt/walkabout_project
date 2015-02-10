@@ -35,6 +35,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
 
             if not remote_function:
                 if MESSAGE_HEADER_END not in message:
+                    print(message[:30])
                     return_value = ReferenceError(
                         'Message does not contain header information and a function reference')
                     frame = None
@@ -50,7 +51,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                     input_buffer = InputStreamBuffer(data=message, buffer_size=buffer_size)
                 except IndexError:
                     return_value = AttributeError("Server side exception: \
-                    Remote module doesn't have that function")
+                    Remote module doesn't have the function you tried to call")
                     frame = None
                     break
             else:
@@ -65,6 +66,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                         total_data_size))
 
             elif total_data_size == input_buffer.size:
+                print('total equal buffer')
                 frame = input_buffer[0:input_buffer.size]
 
             else:
