@@ -12,13 +12,14 @@ from walkabout.connection.tcpsock import HEADER_DELIMITER, MESSAGE_HEADER_END, M
 from walkabout.connection import CLOSE_CONNECTION
 
 
-def _process_wrapper(func, buffer_file, args_queue):
+def _process_wrapper(func, buffer_file, args_queue, tcp_socket):
     fd = open(buffer_file)
     while True:
         try:
             size = args_queue.get(timeout=10)
             func(fd.read(size))
         except Empty:
+            tcp_socket.send(CLOSE_CONNECTION)
             break
 
 
@@ -40,18 +41,19 @@ def serialized_arguments(func, return_handler, endpoint):
 
 # TODO bug fixing...
 class BufferedMethod(object):
-    def __init__(self, func, buffer_size, endpoint, return_handler):
+    def __init__(self, func, buffer_size, endpoint, return_handler, tcp_socket):
         self._buffer_size = buffer_size
         self._args_queue = Queue()
         self._endpoint = endpoint
         self._buffer = deque()
         self._func = func
         self._current_buffer_size = 0
+
         self._temp_file = tempfile.NamedTemporaryFile()
         self._network_func = Thread(target=_process_wrapper,
                                     args=(func,
                                           self._temp_file.name,
-                                          self._args_queue))
+                                          self._args_queue, tcp_socket))
 
         self._network_func.start()
 
@@ -85,7 +87,7 @@ class BufferedMethod(object):
         if self._current_buffer_size > 0:
             args = ((self._buffer,), {})
             self._func(self._endpoint.to_send(args))
-            self._func(self._endpoint.to_send(CLOSE_CONNECTION))
+            # self._func(self._endpoint.to_send(CLOSE_CONNECTION))
             self._return_handler.join()
             self._current_buffer_size = 0
 
@@ -139,7 +141,8 @@ class Client(object):
                                                self._endpoint)
 
             if name in self._buffered_methods:
-                self._last_method = BufferedMethod(func, self._buffer_size, self._endpoint, return_handler)
+                self._last_method = BufferedMethod(func, self._buffer_size, self._endpoint, return_handler,
+                                                   self._tcp_client_socket)
             else:
 
                 self._last_method = serialized_arguments(func, return_handler, self._endpoint)
