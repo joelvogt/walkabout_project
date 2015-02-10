@@ -4,7 +4,7 @@ import socket
 import multiprocessing
 
 from walkabout.connection import CLOSE_CONNECTION
-from walkabout.connection.tcpsock import HEADER_DELIMITER, MESSAGE_HEADER_END, MESSAGE_HEADER
+from walkabout.connection.tcpsock import HEADER_DELIMITER, MESSAGE_HEADER_END
 from walkabout.helpers.datalib import InputStreamBuffer
 
 
@@ -34,7 +34,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                 break
 
             if not remote_function:
-                if message[:3] != MESSAGE_HEADER:
+                if MESSAGE_HEADER_END not in message:
                     print(message)
                     return_value = ReferenceError(
                         'Message does not contain header information and a function reference')
