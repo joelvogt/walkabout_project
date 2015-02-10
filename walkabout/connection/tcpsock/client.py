@@ -110,7 +110,6 @@ def remote_function(function_ref, tcp_client_socket, serialized_content):
                   message=serialized_content,
                   delimiter=HEADER_DELIMITER,
                   header_end=MESSAGE_HEADER_END)
-    print(message[:30])
     tcp_client_socket.send(message)
 
 

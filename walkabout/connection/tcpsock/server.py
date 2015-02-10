@@ -61,7 +61,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                 input_buffer.extend(message)
 
             if total_data_size < input_buffer.size:
-                print('smaller datasize')
+                print('buffer {0} datasize {1}'.format(input_buffer.size, total_data_size))
                 return_value = OverflowError(
                     'Server side exception: \
                     The size {0} is longer than \
@@ -72,12 +72,12 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
             elif total_data_size == input_buffer.size:
                 print('total equal buffer')
                 frame = input_buffer[0:input_buffer.size]
-                input_buffer = None
+
 
             else:
                 continue
             break
-
+        input_buffer = None
         if frame:
             args, kwargs = endpoint.to_receive(frame)
             try:
