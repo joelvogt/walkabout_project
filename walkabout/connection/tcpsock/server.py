@@ -20,11 +20,11 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
     return_value = -1
     frame = None
     is_used_by_client = True
+    next_frame = None
     while is_used_by_client:
         while is_used_by_client:
             message = tcp_client_socket.recv(buffer_size)
             if CLOSE_CONNECTION == message:
-                print('debug closing connection')
                 print(return_value)
                 is_used_by_client = False
                 frame = None
@@ -38,9 +38,10 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                 break
 
             if not remote_function:
-                print('new function')
+                if next_frame:
+                    message = ''.join([next_frame, message])
+                    next_frame = None
                 if message[:3] != MESSAGE_HEADER:
-                    print('message invalid')
                     print(message[:10])
                     return_value = ReferenceError(
                         'Message does not contain header information and a function reference')
@@ -54,21 +55,22 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                 try:
                     remote_function = remote_functions[int(function)]
                     total_data_size = int(message_length)
+
                     input_buffer = InputStreamBuffer(data=message, buffer_size=buffer_size)
                 except IndexError:
-                    print('index error')
                     return_value = AttributeError("Server side exception: \
                     Remote module doesn't have the function you tried to call")
                     frame = None
-                    input_buffer = None
                     break
             else:
+                diff = total_data_size - (input_buffer.size + len(message))
+                if diff < 0:
+                    next_frame = message[diff:]
+                    message = message[:diff]
                 input_buffer.extend(message)
 
             if total_data_size < input_buffer.size:
-                print('buffer {0} datasize {1}'.format(input_buffer.size, total_data_size))
                 input_buffer._fd.seek(0)
-                print(len(''.join(input_buffer._fd.readlines())))
                 frame = None
                 return_value = OverflowError(
                     'Server side exception: \
@@ -78,12 +80,9 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                         total_data_size))
 
             elif total_data_size == input_buffer.size:
-                print('total equal buffer')
                 frame = input_buffer[0:input_buffer.size]
-
-
             else:
-                print('buffer size {0}'.format(input_buffer.size))
+                # print('buffer size {0}'.format(input_buffer.size))
                 continue
             break
         input_buffer = None
@@ -100,7 +99,6 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
             tcp_client_socket.send(endpoint.to_send(return_value))
             remote_function = None
             return_value = -1
-    print('exit loop')
     tcp_client_socket.send(endpoint.to_send(CLOSE_CONNECTION))
     tcp_client_socket.close()
 

@@ -19,7 +19,7 @@ else:
     client_id = '%s-%f' % (sys.platform, time.time())
     modules = dict(
         pixelman_logger=dict(
-            buffer_size=1024,
+            buffer_size=8192,
             connection='tcpsock',
             serialization=dict(
                 data='python_pickling',

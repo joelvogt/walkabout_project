@@ -1,5 +1,4 @@
 # -*- coding:utf-8 -*-
-import sys
 
 __author__ = u'Joël Vogt'
 import functools
@@ -71,16 +70,15 @@ class BufferedMethod(object):
 
     def __call__(self, *args, **kwargs):
         arg_input = (args, kwargs)
-        self._current_buffer_size += sys.getsizeof(arg_input)
+        self._current_buffer_size += 1
         # print(sys.getsizeof(arg_input))
         self._buffer.append(arg_input)
-        if self._current_buffer_size >= self._buffer_size:
+        if self._current_buffer_size >= 10:
             to_serial_args = ((self._buffer,), {})
             self._buffer = deque()
             self._current_buffer_size = 0
             serialized = self._endpoint.to_send(to_serial_args)
             size = len(serialized)
-            print(size)
             self._temp_file.write(serialized)
             self._temp_file.flush()
 
