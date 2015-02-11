@@ -19,7 +19,6 @@ def _process_wrapper(func, buffer_file, args_queue, tcp_socket):
             size = args_queue.get(timeout=10)
             func(fd.read(size))
         except Empty:
-            print('ending connection')
             tcp_socket.send(CLOSE_CONNECTION)
             break
 
@@ -62,7 +61,6 @@ class BufferedMethod(object):
             while True:
                 res = _return_handler()
                 if res == CLOSE_CONNECTION:
-                    print('return ends connection')
                     break
 
         self._return_handler = Thread(target=return_value_listener, args=(return_handler,))
@@ -71,9 +69,8 @@ class BufferedMethod(object):
     def __call__(self, *args, **kwargs):
         arg_input = (args, kwargs)
         self._current_buffer_size += 1
-        # print(sys.getsizeof(arg_input))
         self._buffer.append(arg_input)
-        if self._current_buffer_size >= 10:
+        if self._current_buffer_size >= 50:
             to_serial_args = ((self._buffer,), {})
             self._buffer = deque()
             self._current_buffer_size = 0
@@ -85,10 +82,8 @@ class BufferedMethod(object):
             self._args_queue.put(size)
 
     def __del__(self):
-        print('del buffer')
         self._network_func.join()
         if self._current_buffer_size > 0:
-            print('sizd above 0')
             args = ((self._buffer,), {})
             self._func(self._endpoint.to_send(args))
             self._current_buffer_size = 0

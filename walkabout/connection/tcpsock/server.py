@@ -25,14 +25,12 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
         while is_used_by_client:
             message = tcp_client_socket.recv(buffer_size)
             if CLOSE_CONNECTION == message:
-                print(return_value)
                 is_used_by_client = False
                 frame = None
 
                 break
 
             if not message:
-                print('Not message')
                 is_used_by_client = False
                 return_value = -1
                 break
@@ -42,7 +40,6 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                     message = ''.join([next_frame, message])
                     next_frame = None
                 if message[:3] != MESSAGE_HEADER:
-                    print(message[:10])
                     return_value = ReferenceError(
                         'Message does not contain header information and a function reference')
                     frame = None
@@ -82,7 +79,6 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
             elif total_data_size == input_buffer.size:
                 frame = input_buffer[0:input_buffer.size]
             else:
-                # print('buffer size {0}'.format(input_buffer.size))
                 continue
             break
         input_buffer = None
