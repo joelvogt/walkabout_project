@@ -70,7 +70,7 @@ class BufferedMethod(object):
         arg_input = (args, kwargs)
         self._current_buffer_size += 1
         self._buffer.append(arg_input)
-        if self._current_buffer_size >= 50:
+        if self._current_buffer_size >= 100:
             to_serial_args = ((self._buffer,), {})
             self._buffer = deque()
             self._current_buffer_size = 0
