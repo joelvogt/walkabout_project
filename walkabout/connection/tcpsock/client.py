@@ -39,7 +39,6 @@ def serialized_arguments(func, return_handler, endpoint):
     return on_call
 
 
-# TODO bug fixing...
 class BufferedMethod(object):
     def __init__(self, func, buffer_size, endpoint, return_handler, tcp_socket):
         self._buffer_size = buffer_size
@@ -57,20 +56,30 @@ class BufferedMethod(object):
 
         self._network_func.start()
 
-        def return_value_listener(_return_handler):
+        def return_value_listener(_return_handler, return_values):
             while True:
-                res = _return_handler()
-                if res == CLOSE_CONNECTION:
+                remote_return_values = _return_handler()
+                for return_value in remote_return_values:
+                    if isinstance(remote_return_values, Exception):
+                        raise return_value
+                    else:
+                        return_values.append(return_value)
+
+                if remote_return_values == CLOSE_CONNECTION:
                     break
 
-        self._return_handler = Thread(target=return_value_listener, args=(return_handler,))
+        self.return_values = deque()
+        self._return_handler = Thread(target=return_value_listener, args=(return_handler, self.return_values))
         self._return_handler.start()
+
+    def __iter__(self):
+        return self.return_values.__iter__()
 
     def __call__(self, *args, **kwargs):
         arg_input = (args, kwargs)
         self._current_buffer_size += 1
         self._buffer.append(arg_input)
-        if self._current_buffer_size >= 100:
+        if self._current_buffer_size >= 20:
             to_serial_args = ((self._buffer,), {})
             self._buffer = deque()
             self._current_buffer_size = 0
