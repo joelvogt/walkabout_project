@@ -73,6 +73,7 @@ class BufferedMethod(object):
         self._return_handler.start()
 
     def __iter__(self):
+        self._return_handler.join()
         return self.return_values.__iter__()
 
     def __call__(self, *args, **kwargs):
