@@ -12,7 +12,7 @@ from walkabout.connection.tcpsock import HEADER_DELIMITER, MESSAGE_HEADER_END, M
 from walkabout.connection import CLOSE_CONNECTION
 
 
-def _process_wrapper(func, buffer_file, args_queue, tcp_socket, buffer_of_method_function, endpoint):
+def _process_wrapper(func, buffer_file, args_queue, tcp_socket):
     fd = open(buffer_file)
     while True:
         try:
@@ -50,7 +50,7 @@ class BufferedMethod(object):
         self._buffer_size = buffer_size
         self._args_queue = Queue()
         self._endpoint = endpoint
-        self._buffer = deque()
+        self._buffer = []
         self._func = func
         self._current_buffer_size = 0
         self._tcp_socket = tcp_socket
@@ -58,7 +58,7 @@ class BufferedMethod(object):
         self._network_func = Thread(target=_process_wrapper,
                                     args=(func,
                                           self._temp_file.name,
-                                          self._args_queue, tcp_socket, self._buffer, self._endpoint))
+                                          self._args_queue, tcp_socket))
 
         self._network_func.start()
 
@@ -89,10 +89,11 @@ class BufferedMethod(object):
         self._buffer.append(arg_input)
         if self._current_buffer_size >= 10:
             to_serial_args = ((self._buffer,), {})
-            self._buffer = deque()
+            self._buffer = []
             self._current_buffer_size = 0
             serialized = self._endpoint.to_send(to_serial_args)
             size = len(serialized)
+            print(size)
             self._temp_file.write(serialized)
             self._temp_file.flush()
 
