@@ -12,18 +12,20 @@ from walkabout.connection.tcpsock import HEADER_DELIMITER, MESSAGE_HEADER_END, M
 from walkabout.connection import CLOSE_CONNECTION
 
 
-def _process_wrapper(func, buffer_file, args_queue, tcp_socket):
+def _process_wrapper(func, buffer_file, args_queue, tcp_socket, buffer_of_method_function, endpoint):
     fd = open(buffer_file)
     while True:
         try:
-            print('loop')
             size = args_queue.get(timeout=10)
-            msg = fd.read(size)
-            print(msg)
-            func(msg)
-            print('lpost loop')
+            func(fd.read(size))
         except Empty:
+            if buffer_of_method_function:
+                print('sending rest')
+                args = ((buffer_of_method_function,), {})
+                func(endpoint.to_send(args))
+            print('closing')
             tcp_socket.send(CLOSE_CONNECTION)
+            print('exit sender')
             break
 
 
@@ -56,7 +58,7 @@ class BufferedMethod(object):
         self._network_func = Thread(target=_process_wrapper,
                                     args=(func,
                                           self._temp_file.name,
-                                          self._args_queue, tcp_socket))
+                                          self._args_queue, tcp_socket, self._buffer, self._endpoint))
 
         self._network_func.start()
 
@@ -70,6 +72,7 @@ class BufferedMethod(object):
                         return_values.append(return_value)
 
                 if remote_return_values == CLOSE_CONNECTION:
+                    print('ending return handler')
                     break
 
         self.return_values = deque()
@@ -85,7 +88,7 @@ class BufferedMethod(object):
         self._current_buffer_size += 1
         self._buffer.append(arg_input)
         print('debug 0')
-        if self._current_buffer_size >= 1:
+        if self._current_buffer_size >= 10:
             print('debug 1')
             to_serial_args = ((self._buffer,), {})
             self._buffer = deque()
@@ -100,13 +103,13 @@ class BufferedMethod(object):
     def __del__(self):
         print('debug del')
         self._network_func.join()
-        if self._current_buffer_size > 0:
-            print('size +0')
-            args = ((self._buffer,), {})
-            self._func(self._endpoint.to_send(args))
-            self._current_buffer_size = 0
+        # if self._current_buffer_size > 0:
+        # print('size +0')
+        #     args = ((self._buffer,), {})
+        #     self._func(self._endpoint.to_send(args))
+        #     self._current_buffer_size = 0
         print('clsng')
-        self._tcp_socket.send(CLOSE_CONNECTION)
+        # self._tcp_socket.send(CLOSE_CONNECTION)
         self._return_handler.join()
         print('bue bye')
 
@@ -171,5 +174,5 @@ class Client(object):
             if hasattr(self._last_method, '__del__'):
                 self._last_method.__del__()  # Jython won't call this destructor
             self._last_method = None
-        self._tcp_client_socket.send(CLOSE_CONNECTION)
+        # self._tcp_client_socket.send(CLOSE_CONNECTION)
         self._tcp_client_socket.close()
