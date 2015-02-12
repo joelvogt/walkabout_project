@@ -20,7 +20,6 @@ def save_file(filename):
     for directory in path[:-1]:
         current_dir.append(directory)
         if not os.path.exists(''.join(current_dir)):
-            print('fo')
             os.mkdir(''.join(os.path.join(current_dir)))
     logfile = open(filename, 'w')
 
@@ -28,7 +27,6 @@ def save_file(filename):
 @networked_function(buffered=True)
 def write(event):
     global logfile
-    print(event)
     logfile.write(event)
     logfile.flush()
 

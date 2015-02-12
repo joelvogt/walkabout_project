@@ -16,7 +16,7 @@ def _process_wrapper(func, buffer_file, args_queue, tcp_socket, buffer_of_method
     fd = open(buffer_file)
     while True:
         try:
-            size = args_queue.get(timeout=10)
+            size = args_queue.get(timeout=3)
             func(fd.read(size))
         except Empty:
             if buffer_of_method_function:
@@ -88,7 +88,7 @@ class BufferedMethod(object):
         self._current_buffer_size += 1
         self._buffer.append(arg_input)
         print('debug 0')
-        if self._current_buffer_size >= 10:
+        if self._current_buffer_size >= 100:
             print('debug 1')
             to_serial_args = ((self._buffer,), {})
             self._buffer = deque()
