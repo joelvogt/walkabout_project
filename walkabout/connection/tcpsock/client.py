@@ -33,6 +33,7 @@ def handle_return_value(tcp_client_socket, buffer_size, endpoint):
 
 def serialized_arguments(func, return_handler, endpoint):
     def on_call(*args, **kwargs):
+        print('foo')
         func(endpoint.to_send((args, kwargs)))
         return return_handler()
 
@@ -148,6 +149,7 @@ class Client(object):
                                                self._endpoint)
 
             if name in self._buffered_methods:
+                print(name)
                 self._last_method = BufferedMethod(func, self._buffer_size, self._endpoint, return_handler,
                                                    self._tcp_client_socket)
             else:
