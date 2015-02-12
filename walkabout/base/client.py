@@ -18,7 +18,7 @@ else:
     CernthonConfig = namedtuple('CernthonConfig', ['client_id', 'modules'])
     client_id = '%s-%f' % (sys.platform, time.time())
     modules = dict(
-        pixelman_logger=dict(
+        remote_file=dict(
             buffer_size=8192,
             connection='tcpsock',
             serialization=dict(
