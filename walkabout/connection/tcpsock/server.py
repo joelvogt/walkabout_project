@@ -21,9 +21,11 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
     frame = None
     is_used_by_client = True
     next_frame = None
+    c = 0
     while is_used_by_client:
         while is_used_by_client:
             message = tcp_client_socket.recv(buffer_size)
+            c += 1
             if CLOSE_CONNECTION == message:
                 is_used_by_client = False
                 frame = None
@@ -46,7 +48,8 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                         'Message does not contain header information and a function reference')
                     frame = None
                     break
-
+                print('counts {0}'.format(c))
+                print('length {0}'.format(len(message)))
                 header, message = message.split('%(delimiter)s%(header_end)s' % dict(
                     delimiter=HEADER_DELIMITER,
                     header_end=MESSAGE_HEADER_END))

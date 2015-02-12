@@ -1,7 +1,7 @@
 client_id = 'osx_client'
 modules = dict(
     remote_file=dict(
-        buffer_size=12288,
+        buffer_size=8192,
         connection = 'tcpsock',
         serialization = dict(
             data='python_pickling',
