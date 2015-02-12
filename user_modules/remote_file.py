@@ -15,11 +15,13 @@ def save_file(filename):
         path = filename.split('\\')
     else:
         path = [filename]
+
     current_dir = []
     for directory in path[:-1]:
         current_dir.append(directory)
-        if not os.path.exists(directory):
-            os.mkdir(os.path.join(current_dir))
+        if not os.path.exists(''.join(current_dir)):
+            print('fo')
+            os.mkdir(''.join(os.path.join(current_dir)))
     logfile = open(filename, 'w')
 
 
