@@ -50,6 +50,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                     header_end=MESSAGE_HEADER_END))
                 header, function, message_length = header.split(HEADER_DELIMITER)
                 try:
+                    print('called {0}'.format(function))
                     remote_function = remote_functions[function]
                     total_data_size = int(message_length)
 
@@ -134,6 +135,7 @@ class Server(object):
     def __call__(self, networked_func, buffered):
         def buffered_function(func):
             def on_call(params):
+                print('on call called')
                 return [func(*args, **kwargs) for args, kwargs in params]
 
             return on_call
