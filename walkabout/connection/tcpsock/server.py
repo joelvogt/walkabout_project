@@ -53,6 +53,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                 header, message = message.split('%(delimiter)s%(header_end)s' % dict(
                     delimiter=HEADER_DELIMITER,
                     header_end=MESSAGE_HEADER_END))
+                print('afetr header')
                 header, function, message_length = header.split(HEADER_DELIMITER)
                 try:
                     print('called {0}'.format(function))

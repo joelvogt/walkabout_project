@@ -16,7 +16,7 @@ def _process_wrapper(func, buffer_file, args_queue, tcp_socket, buffer_of_method
     fd = open(buffer_file)
     while True:
         try:
-            size = args_queue.get(timeout=3)
+            size = args_queue.get(timeout=10)
             func(fd.read(size))
         except Empty:
             if buffer_of_method_function:
