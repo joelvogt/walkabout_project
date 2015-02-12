@@ -25,7 +25,6 @@ class ModulesDirectory(object):
     def bind_module(self, modules_process, module_binder_instance, module_ref):
         module = imp.load_source(module_ref['name'], os.path.join(self._modules_dir, module_ref['file']))
         for x in module.networked_function.functions_registry:
-            print(x)
             module_binder_instance(*x)
         module.networked_function.functions_registry = []
         module_binder_process = Process(target=module_binder_instance.run, name=module_ref['name'])

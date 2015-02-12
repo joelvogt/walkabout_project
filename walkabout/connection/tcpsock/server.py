@@ -131,17 +131,17 @@ class Server(object):
                       self._endpoint))
             p.start()
 
-    def __call__(self, buffered_func, buffered=False):
+    def __call__(self, networked_func, buffered):
         def buffered_function(func):
             def on_call(params):
                 return [func(*args, **kwargs) for args, kwargs in params]
 
             return on_call
 
-        networked_func = buffered_func
+
         if buffered:
-            self.buffered_methods.append(buffered_func.__name__)
-            networked_func = buffered_function(networked_func)
+            self.buffered_methods.append(networked_func.__name__)
+            self._register_function(buffered_function(networked_func), name=networked_func.__name__)
         else:
-            self.unbuffered_methods.append(buffered_func.__name__)
-        self._register_function(networked_func, name=buffered_func.__name__)
+            self.unbuffered_methods.append(networked_func.__name__)
+            self._register_function(networked_func, name=networked_func.__name__)
