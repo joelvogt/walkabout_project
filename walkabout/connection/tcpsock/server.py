@@ -50,7 +50,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                     header_end=MESSAGE_HEADER_END))
                 header, function, message_length = header.split(HEADER_DELIMITER)
                 try:
-                    remote_function = remote_functions[int(function)]
+                    remote_function = remote_functions[function]
                     total_data_size = int(message_length)
 
                     input_buffer = InputStreamBuffer(data=message, buffer_size=buffer_size)
@@ -107,7 +107,7 @@ class Server(object):
         self.buffered_methods = []
         self.unbuffered_methods = []
         self._endpoint = endpoint
-        self._remote_functions = []
+        self._remote_functions = {}
         self._tcp_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._tcp_server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self._tcp_server_socket.bind((self.hostname, self.port))
@@ -115,7 +115,7 @@ class Server(object):
         self._ready = True
 
     def _register_function(self, func, name):
-        self._remote_functions.append(func)
+        self._remote_functions[name] = func
 
     def __del__(self):
         self._tcp_server_socket.close()

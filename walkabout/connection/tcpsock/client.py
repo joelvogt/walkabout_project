@@ -104,7 +104,7 @@ class BufferedMethod(object):
 def remote_function(function_ref, tcp_client_socket, serialized_content):
     message = '%(header)s' \
               '%(delimiter)s' \
-              '%(function_ref)d' \
+              '%(function_ref)s' \
               '%(delimiter)s' \
               '%(message_length)d' \
               '%(delimiter)s' \
@@ -141,7 +141,7 @@ class Client(object):
         if name != self._last_method_name:
             self._last_method_name = name
             func = functools.partial(remote_function,
-                                     self._methods_registry.index(name),
+                                     name,
                                      self._tcp_client_socket)
             return_handler = functools.partial(handle_return_value,
                                                self._tcp_client_socket,
