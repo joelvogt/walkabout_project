@@ -25,7 +25,7 @@ config_options = dict(
 
 if __name__ == '__main__':
     config = ConfigParser.ConfigParser()
-    config.read('server.config')
+    config.read('server.cfg')
     params = {}
     for key, value in sorted(
             [
