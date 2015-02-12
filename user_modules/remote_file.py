@@ -27,6 +27,7 @@ def save_file(filename):
 @networked_function(buffered=True)
 def write(event):
     global logfile
+    print(event)
     logfile.write(event)
     logfile.flush()
 

@@ -2,9 +2,10 @@
 __author__ = u'Joël Vogt'
 import socket
 import multiprocessing
+import re
 
 from walkabout.connection import CLOSE_CONNECTION
-from walkabout.connection.tcpsock import HEADER_DELIMITER, MESSAGE_HEADER_END, MESSAGE_HEADER
+from walkabout.connection.tcpsock import MESSAGE_HEADER
 from walkabout.helpers.datalib import InputStreamBuffer
 
 
@@ -21,11 +22,10 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
     frame = None
     is_used_by_client = True
     next_frame = None
-    c = 0
+    pattern = re.compile('^HDR\|(\S+?)\|(\d+?)\|EOH(.*)', re.DOTALL)
     while is_used_by_client:
         while is_used_by_client:
             message = tcp_client_socket.recv(buffer_size)
-            c += 1
             if CLOSE_CONNECTION == message:
                 is_used_by_client = False
                 frame = None
@@ -49,35 +49,22 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                         'Message does not contain header information and a function reference')
                     frame = None
                     break
-                print('counts {0}'.format(c))
-                print('length {0}'.format(len(message)))
-                print('header ocunt {0}'.format(message.count(MESSAGE_HEADER_END)))
-                print(message[:100])
-                print(message[-100:])
-                header, message = message.split('%(delimiter)s%(header_end)s' % dict(
-                    delimiter=HEADER_DELIMITER,
-                    header_end=MESSAGE_HEADER_END))
-                print('afetr header')
-                header, function, message_length = header.split(HEADER_DELIMITER)
+                function, message_length, message = re.match(pattern, message).groups()
                 try:
-                    print('called {0}'.format(function))
                     remote_function = remote_functions[function]
                     total_data_size = int(message_length)
-
-                    input_buffer = InputStreamBuffer(data=message, buffer_size=buffer_size)
+                    input_buffer = InputStreamBuffer(buffer_size=buffer_size)
                 except IndexError:
                     return_value = AttributeError("Server side exception: \
                     Remote module doesn't have the function you tried to call")
                     frame = None
                     break
-            else:
-                print('else')
-                diff = total_data_size - (input_buffer.size + len(message))
-                if diff < 0:
-                    print('diff is {0}'.format(diff))
-                    next_frame = message[diff:]
-                    message = message[:diff]
-                input_buffer.extend(message)
+
+            diff = total_data_size - (input_buffer.size + len(message))
+            if diff < 0:
+                next_frame = message[diff:]
+                message = message[:diff]
+            input_buffer.extend(message)
 
             if total_data_size < input_buffer.size:
                 input_buffer._fd.seek(0)
@@ -147,7 +134,6 @@ class Server(object):
     def __call__(self, networked_func, buffered):
         def buffered_function(func):
             def on_call(params):
-                print('on call called')
                 return [func(*args, **kwargs) for args, kwargs in params]
 
             return on_call

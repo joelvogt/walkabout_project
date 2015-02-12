@@ -6,28 +6,30 @@ import socket
 from threading import Thread
 from Queue import Queue, Empty
 from collections import deque
-import tempfile
 
 from walkabout.connection.tcpsock import HEADER_DELIMITER, MESSAGE_HEADER_END, MESSAGE_HEADER
 from walkabout.connection import CLOSE_CONNECTION
 
 
-def _process_wrapper(func, buffer_file, args_queue, tcp_socket):
-    fd = open(buffer_file)
-    while True:
+def _process_wrapper(func, args_queue, tcp_socket, endpoint):
+    # temp_file = tempfile.NamedTemporaryFile()
+    buffer = deque()
+    buffer_size = 0
+    buffer_limit = 50
+    is_alive = True
+    while is_alive:
         try:
-            print('sending')
-            size = args_queue.get(timeout=10)
-            func(fd.read(size))
+            args = args_queue.get(timeout=4)
+            buffer_size += 1
         except Empty:
-            # if buffer_of_method_function:
-            # print('sending rest')
-            #     args = ((buffer_of_method_function,), {})
-            #     func(endpoint.to_send(args))
-            print('closing')
-            tcp_socket.send(CLOSE_CONNECTION)
-            print('exit sender')
-            break
+            buffer_limit = buffer_size
+            is_alive = False
+        buffer.append(args)
+        if buffer_size == buffer_limit:
+            to_serial_args = (([buffer.popleft() for i in range(buffer_size)],), {})
+            buffer_size = 0
+            func(endpoint.to_send(to_serial_args))
+            # tcp_socket.send(CLOSE_CONNECTION)
 
 
 def handle_return_value(tcp_client_socket, buffer_size, endpoint):
@@ -51,15 +53,14 @@ class BufferedMethod(object):
         self._buffer_size = buffer_size
         self._args_queue = Queue()
         self._endpoint = endpoint
-        self._buffer = []
+        self._buffer = deque()
         self._func = func
         self._current_buffer_size = 0
         self._tcp_socket = tcp_socket
-        self._temp_file = tempfile.NamedTemporaryFile()
+        # self._temp_file = tempfile.NamedTemporaryFile()
         self._network_func = Thread(target=_process_wrapper,
                                     args=(func,
-                                          self._temp_file.name,
-                                          self._args_queue, tcp_socket))
+                                          self._args_queue, tcp_socket, endpoint))
 
         self._network_func.start()
 
@@ -73,7 +74,6 @@ class BufferedMethod(object):
                         return_values.append(return_value)
 
                 if remote_return_values == CLOSE_CONNECTION:
-                    print('ending return handler')
                     break
 
         self.return_values = deque()
@@ -85,31 +85,12 @@ class BufferedMethod(object):
         return self.return_values.__iter__()
 
     def __call__(self, *args, **kwargs):
-        arg_input = (args, kwargs)
-        self._current_buffer_size += 1
-        self._buffer.append(arg_input)
-        if self._current_buffer_size >= 10:
-            to_serial_args = ((self._buffer,), {})
-            self._buffer = []
-            self._current_buffer_size = 0
-            serialized = self._endpoint.to_send(to_serial_args)
-            size = len(serialized)
-            print(size)
-            self._temp_file.write(serialized)
-            self._temp_file.flush()
-
-            self._args_queue.put(size)
+        self._args_queue.put((args, kwargs))
 
     def __del__(self):
         print('debug del')
         self._network_func.join()
-        # if self._current_buffer_size > 0:
-        # print('size +0')
-        #     args = ((self._buffer,), {})
-        #     self._func(self._endpoint.to_send(args))
-        #     self._current_buffer_size = 0
-        print('clsng')
-        # self._tcp_socket.send(CLOSE_CONNECTION)
+        self._tcp_socket.send(CLOSE_CONNECTION)
         self._return_handler.join()
         print('bue bye')
 
@@ -174,5 +155,5 @@ class Client(object):
             if hasattr(self._last_method, '__del__'):
                 self._last_method.__del__()  # Jython won't call this destructor
             self._last_method = None
-        # self._tcp_client_socket.send(CLOSE_CONNECTION)
+        self._tcp_client_socket.send(CLOSE_CONNECTION)
         self._tcp_client_socket.close()
