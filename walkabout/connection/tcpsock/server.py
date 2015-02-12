@@ -33,6 +33,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                 break
 
             if not message:
+                print('no message')
                 is_used_by_client = False
                 return_value = -1
                 break
@@ -69,6 +70,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                     frame = None
                     break
             else:
+                print('else')
                 diff = total_data_size - (input_buffer.size + len(message))
                 if diff < 0:
                     print('diff is {0}'.format(diff))

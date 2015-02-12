@@ -19,10 +19,10 @@ def _process_wrapper(func, buffer_file, args_queue, tcp_socket, buffer_of_method
             size = args_queue.get(timeout=10)
             func(fd.read(size))
         except Empty:
-            if buffer_of_method_function:
-                print('sending rest')
-                args = ((buffer_of_method_function,), {})
-                func(endpoint.to_send(args))
+            # if buffer_of_method_function:
+            # print('sending rest')
+            #     args = ((buffer_of_method_function,), {})
+            #     func(endpoint.to_send(args))
             print('closing')
             tcp_socket.send(CLOSE_CONNECTION)
             print('exit sender')
@@ -87,9 +87,7 @@ class BufferedMethod(object):
         arg_input = (args, kwargs)
         self._current_buffer_size += 1
         self._buffer.append(arg_input)
-        print('debug 0')
-        if self._current_buffer_size >= 100:
-            print('debug 1')
+        if self._current_buffer_size >= 10:
             to_serial_args = ((self._buffer,), {})
             self._buffer = deque()
             self._current_buffer_size = 0
