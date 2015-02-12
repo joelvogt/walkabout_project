@@ -33,7 +33,6 @@ def handle_return_value(tcp_client_socket, buffer_size, endpoint):
 
 def serialized_arguments(func, return_handler, endpoint):
     def on_call(*args, **kwargs):
-        print('foo')
         func(endpoint.to_send((args, kwargs)))
         return return_handler()
 
