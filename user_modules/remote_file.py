@@ -30,3 +30,8 @@ def write(event):
     global logfile
     logfile.write(event)
     logfile.flush()
+
+
+@networked_function(buffered=False)
+def test_me():
+    print('test')
