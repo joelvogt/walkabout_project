@@ -37,6 +37,8 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
 
             if not remote_function:
                 if next_frame:
+                    print('is next frame')
+                    print(next_frame)
                     message = ''.join([next_frame, message])
                     next_frame = None
                 if message[:3] != MESSAGE_HEADER:
