@@ -27,7 +27,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
             if CLOSE_CONNECTION == message:
                 is_used_by_client = False
                 frame = None
-
+                print('closing function')
                 break
 
             if not message:

@@ -16,8 +16,12 @@ def _process_wrapper(func, buffer_file, args_queue, tcp_socket):
     fd = open(buffer_file)
     while True:
         try:
+            print('loop')
             size = args_queue.get(timeout=10)
-            func(fd.read(size))
+            msg = fd.read(size)
+            print(msg)
+            func(msg)
+            print('lpost loop')
         except Empty:
             tcp_socket.send(CLOSE_CONNECTION)
             break
@@ -47,7 +51,7 @@ class BufferedMethod(object):
         self._buffer = deque()
         self._func = func
         self._current_buffer_size = 0
-
+        self._tcp_socket = tcp_socket
         self._temp_file = tempfile.NamedTemporaryFile()
         self._network_func = Thread(target=_process_wrapper,
                                     args=(func,
@@ -80,7 +84,9 @@ class BufferedMethod(object):
         arg_input = (args, kwargs)
         self._current_buffer_size += 1
         self._buffer.append(arg_input)
-        if self._current_buffer_size >= 20:
+        print('debug 0')
+        if self._current_buffer_size >= 1:
+            print('debug 1')
             to_serial_args = ((self._buffer,), {})
             self._buffer = deque()
             self._current_buffer_size = 0
@@ -92,12 +98,17 @@ class BufferedMethod(object):
             self._args_queue.put(size)
 
     def __del__(self):
+        print('debug del')
         self._network_func.join()
         if self._current_buffer_size > 0:
+            print('size +0')
             args = ((self._buffer,), {})
             self._func(self._endpoint.to_send(args))
             self._current_buffer_size = 0
+        print('clsng')
+        self._tcp_socket.send(CLOSE_CONNECTION)
         self._return_handler.join()
+        print('bue bye')
 
 
 def remote_function(function_ref, tcp_client_socket, serialized_content):
