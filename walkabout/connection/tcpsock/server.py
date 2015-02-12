@@ -121,7 +121,6 @@ class Server(object):
         self._tcp_server_socket.close()
 
     def run(self):
-        print(self.__dict__)
         while True:
             tcp_client_socket, _ = self._tcp_server_socket.accept()
             p = multiprocessing.Process(

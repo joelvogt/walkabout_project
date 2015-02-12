@@ -54,7 +54,6 @@ def import_module(module_name, directory_service_hostname='127.0.0.1', port=9000
     results_module = __import__(config['results_module_url'], fromlist=[''])
     send_data_func = data_module.serialize
     receive_results_func = results_module.deserialize
-    print(config)
     return client_module.Client(server_socket=config['server_socket'],
                                 buffer_size=config['buffer_size'],
                                 unbuffered_methods=config['unbuffered_methods'],
