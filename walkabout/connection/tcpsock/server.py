@@ -51,6 +51,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                     break
                 print('counts {0}'.format(c))
                 print('length {0}'.format(len(message)))
+                print('header ocunt {0}'.format(message.count(MESSAGE_HEADER_END)))
                 print(message[:100])
                 print(message[-100:])
                 header, message = message.split('%(delimiter)s%(header_end)s' % dict(
