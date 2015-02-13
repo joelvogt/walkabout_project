@@ -19,8 +19,6 @@ def _shared_global_decorator(func, shared_globals):
     def on_call(*args, **kwargs):
         function_module = sys.modules[func.__module__]
         func_vars = set(filter(lambda x: hasattr(function_module, x), func.__code__.co_names))
-        print(func.__name__)
-        print(shared_globals)
         func_globals = set(
             filter(lambda x: type(func.func_globals[x]) not in [types.ModuleType, types.FunctionType, types.MethodType],
                    func.func_globals.keys()))
@@ -29,16 +27,13 @@ def _shared_global_decorator(func, shared_globals):
         for variable in used_globals:
             if variable in shared_globals:
                 if func.func_globals[variable] != shared_globals[variable]:
-                    print('fooooooo')
                     func.func_globals[variable] = shared_globals[variable]
             else:
                 shared_globals[variable] = None
 
         result = func(*args, **kwargs)
         for variable in used_globals:
-            print('var post {0}'.format(variable))
             if func.func_globals[variable] is not shared_globals[variable]:
-                print('adding var {0}'.format(variable))
                 shared_globals[variable] = func.func_globals[variable]
         return result
 
@@ -152,7 +147,6 @@ class Server(object):
 
     def run(self):
         while True:
-            print('new socket')
             tcp_client_socket, _ = self._tcp_server_socket.accept()
             p = multiprocessing.Process(
                 target=_function_process,
