@@ -28,11 +28,11 @@ def _process_wrapper(func, args_queue, tcp_socket, endpoint):
         if buffer_size == buffer_limit:
             to_serial_args = (([buffer.popleft() for i in range(buffer_size)],), {})
             buffer_size = 0
-            func(endpoint.to_send(to_serial_args))
+            func(tcp_socket, endpoint.to_send(to_serial_args))
             # tcp_socket.send(CLOSE_CONNECTION)
 
 
-def handle_return_value(tcp_client_socket, buffer_size, endpoint):
+def handle_return_value(buffer_size, endpoint, tcp_client_socket):
     return_values = endpoint.to_receive(tcp_client_socket.recv(buffer_size))
     if isinstance(return_values, Exception):
         raise return_values
@@ -40,10 +40,10 @@ def handle_return_value(tcp_client_socket, buffer_size, endpoint):
         return return_values
 
 
-def serialized_arguments(func, return_handler, endpoint):
+def unbuffered_method(func, tcp_socket, return_handler, endpoint):
     def on_call(*args, **kwargs):
-        func(endpoint.to_send((args, kwargs)))
-        return return_handler()
+        func(tcp_socket, endpoint.to_send((args, kwargs)))
+        return return_handler(tcp_socket)
 
     return on_call
 
@@ -55,7 +55,6 @@ class BufferedMethod(object):
         self._endpoint = endpoint
         self._buffer = deque()
         self._func = func
-        self._current_buffer_size = 0
         self._tcp_socket = tcp_socket
         # self._temp_file = tempfile.NamedTemporaryFile()
         self._network_func = Thread(target=_process_wrapper,
@@ -64,9 +63,9 @@ class BufferedMethod(object):
 
         self._network_func.start()
 
-        def return_value_listener(_return_handler, return_values):
+        def return_value_listener(_return_handler, _tcp_socket, return_values):
             while True:
-                remote_return_values = _return_handler()
+                remote_return_values = _return_handler(_tcp_socket)
                 for return_value in remote_return_values:
                     if isinstance(remote_return_values, Exception):
                         raise return_value
@@ -77,7 +76,8 @@ class BufferedMethod(object):
                     break
 
         self.return_values = deque()
-        self._return_handler = Thread(target=return_value_listener, args=(return_handler, self.return_values))
+        self._return_handler = Thread(target=return_value_listener,
+                                      args=(return_handler, tcp_socket, self.return_values))
         self._return_handler.start()
 
     def __iter__(self):
@@ -135,19 +135,18 @@ class Client(object):
         if name != self._last_method_name:
             self._last_method_name = name
             func = functools.partial(remote_function,
-                                     name,
-                                     self._tcp_client_socket)
+                                     name)
             return_handler = functools.partial(handle_return_value,
-                                               self._tcp_client_socket,
                                                self._buffer_size,
                                                self._endpoint)
 
             if name in self._buffered_methods:
-                self._last_method = BufferedMethod(func, self._buffer_size, self._endpoint, return_handler,
-                                                   self._tcp_client_socket)
+                tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                tcp_socket.connect(self._server_socket)
+                self._last_method = BufferedMethod(func, self._buffer_size, self._endpoint, return_handler, tcp_socket)
             else:
 
-                self._last_method = serialized_arguments(func, return_handler, self._endpoint)
+                self._last_method = unbuffered_method(func, self._tcp_client_socket, return_handler, self._endpoint)
         return self._last_method
 
     def __del__(self):

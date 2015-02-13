@@ -5,7 +5,7 @@ from walkabout.helpers.moduleslib import networked_function
 
 logfile = None
 
-
+# networked function could grab the globals and put them in a shared space. wrappers inject globals on demand
 @networked_function(buffered=False)
 def save_file(filename):
     global logfile
@@ -27,6 +27,8 @@ def save_file(filename):
 @networked_function(buffered=True)
 def write(event):
     global logfile
+    if logfile is None:
+        logfile = open('out.txt', 'w')
     print(event)
     logfile.write(event)
     logfile.flush()
