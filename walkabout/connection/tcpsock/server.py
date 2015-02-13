@@ -3,6 +3,9 @@ __author__ = u'Joël Vogt'
 import socket
 import multiprocessing
 import re
+from collections import defaultdict
+import sys
+import types
 
 from walkabout.connection import CLOSE_CONNECTION
 from walkabout.connection.tcpsock import MESSAGE_HEADER
@@ -10,6 +13,36 @@ from walkabout.helpers.datalib import InputStreamBuffer
 
 
 TIMEOUT = 10
+
+
+def _shared_global_decorator(func, shared_globals):
+    def on_call(*args, **kwargs):
+        function_module = sys.modules[func.__module__]
+        func_vars = set(filter(lambda x: hasattr(function_module, x), func.__code__.co_names))
+        print(func.__name__)
+        print(shared_globals)
+        func_globals = set(
+            filter(lambda x: type(func.func_globals[x]) not in [types.ModuleType, types.FunctionType, types.MethodType],
+                   func.func_globals.keys()))
+        used_globals = func_vars.intersection(func_globals)
+
+        for variable in used_globals:
+            if variable in shared_globals:
+                if func.func_globals[variable] != shared_globals[variable]:
+                    print('fooooooo')
+                    func.func_globals[variable] = shared_globals[variable]
+            else:
+                shared_globals[variable] = None
+
+        result = func(*args, **kwargs)
+        for variable in used_globals:
+            print('var post {0}'.format(variable))
+            if func.func_globals[variable] is not shared_globals[variable]:
+                print('adding var {0}'.format(variable))
+                shared_globals[variable] = func.func_globals[variable]
+        return result
+
+    return on_call
 
 
 def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint):
@@ -29,19 +62,15 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
             if CLOSE_CONNECTION == message:
                 is_used_by_client = False
                 frame = None
-                print('closing function')
                 break
 
             if not message:
-                print('no message')
                 is_used_by_client = False
                 return_value = -1
                 break
 
             if not remote_function:
                 if next_frame:
-                    print('is next frame')
-                    print(next_frame)
                     message = ''.join([next_frame, message])
                     next_frame = None
                 if message[:3] != MESSAGE_HEADER:
@@ -113,6 +142,7 @@ class Server(object):
         self._tcp_server_socket.bind((self.hostname, self.port))
         self._tcp_server_socket.listen(5)
         self._ready = True
+        self._shared_globals = defaultdict()
 
     def _register_function(self, func, name):
         self._remote_functions[name] = func
@@ -122,6 +152,7 @@ class Server(object):
 
     def run(self):
         while True:
+            print('new socket')
             tcp_client_socket, _ = self._tcp_server_socket.accept()
             p = multiprocessing.Process(
                 target=_function_process,
@@ -132,16 +163,17 @@ class Server(object):
             p.start()
 
     def __call__(self, networked_func, buffered):
+        function_name = networked_func.__name__
+        networked_func = _shared_global_decorator(networked_func, self._shared_globals)
         def buffered_function(func):
             def on_call(params):
                 return [func(*args, **kwargs) for args, kwargs in params]
 
             return on_call
 
-
         if buffered:
-            self.buffered_methods.append(networked_func.__name__)
-            self._register_function(buffered_function(networked_func), name=networked_func.__name__)
+            self.buffered_methods.append(function_name)
+            self._register_function(buffered_function(networked_func), name=function_name)
         else:
-            self.unbuffered_methods.append(networked_func.__name__)
-            self._register_function(networked_func, name=networked_func.__name__)
+            self.unbuffered_methods.append(function_name)
+            self._register_function(networked_func, name=function_name)

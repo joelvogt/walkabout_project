@@ -27,9 +27,9 @@ def save_file(filename):
 @networked_function(buffered=True)
 def write(event):
     global logfile
-    if logfile is None:
-        logfile = open('out.txt', 'w')
-    print(event)
+    # if logfile is None:
+    # print('news')
+    #     logfile = open('out.txt', 'w')
     logfile.write(event)
     logfile.flush()
 
