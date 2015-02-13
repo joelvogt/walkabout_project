@@ -15,15 +15,16 @@ from walkabout.helpers.datalib import InputStreamBuffer
 TIMEOUT = 10
 
 
-def _shared_global_decorator(func, shared_globals):
-    def on_call(*args, **kwargs):
+def _shared_global_decorator(func):
+    def on_call(shared_globals, *args, **kwargs):
+        print('begin {0}'.format(func.__name__))
+        print(shared_globals)
         function_module = sys.modules[func.__module__]
         func_vars = set(filter(lambda x: hasattr(function_module, x), func.__code__.co_names))
         func_globals = set(
             filter(lambda x: type(func.func_globals[x]) not in [types.ModuleType, types.FunctionType, types.MethodType],
                    func.func_globals.keys()))
         used_globals = func_vars.intersection(func_globals)
-
         for variable in used_globals:
             if variable in shared_globals:
                 if func.func_globals[variable] != shared_globals[variable]:
@@ -34,13 +35,19 @@ def _shared_global_decorator(func, shared_globals):
         result = func(*args, **kwargs)
         for variable in used_globals:
             if func.func_globals[variable] is not shared_globals[variable]:
+                print('new really')
                 shared_globals[variable] = func.func_globals[variable]
+                print(shared_globals)
+                print(func.func_globals[variable])
+
+        print(shared_globals)
+        print('end {0}'.format(func.__name__))
         return result
 
     return on_call
 
 
-def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint):
+def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint, shared_globals):
     input_buffer = None
     total_data_size = 0
     remote_function = None
@@ -109,7 +116,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
         if frame:
             args, kwargs = endpoint.to_receive(frame)
             try:
-                return_value = remote_function(*args, **kwargs)
+                return_value = remote_function(shared_globals, *args, **kwargs)
             except Exception as e:
                 return_value = e
 
@@ -146,6 +153,8 @@ class Server(object):
         self._tcp_server_socket.close()
 
     def run(self):
+        shared_globals = {}
+        print('new process')
         while True:
             tcp_client_socket, _ = self._tcp_server_socket.accept()
             p = multiprocessing.Process(
@@ -153,15 +162,17 @@ class Server(object):
                 args=(tcp_client_socket,
                       self.buffer_size,
                       self._remote_functions,
-                      self._endpoint))
+                      self._endpoint,
+                      shared_globals))
             p.start()
 
     def __call__(self, networked_func, buffered):
         function_name = networked_func.__name__
-        networked_func = _shared_global_decorator(networked_func, self._shared_globals)
+        networked_func = _shared_global_decorator(networked_func)
         def buffered_function(func):
-            def on_call(params):
-                return [func(*args, **kwargs) for args, kwargs in params]
+            def on_call(shared_globals, params):
+                print(shared_globals)
+                return [func(shared_globals, *args, **kwargs) for args, kwargs in params]
 
             return on_call
 
