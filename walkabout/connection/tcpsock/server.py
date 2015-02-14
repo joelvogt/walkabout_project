@@ -17,8 +17,10 @@ TIMEOUT = 10
 
 def _shared_global_decorator(func):
     def on_call(shared_globals, *args, **kwargs):
-        print('begin {0}'.format(func.__name__))
-        print(shared_globals)
+        local_copy = {}
+        if shared_globals:
+            for k in shared_globals.keys():
+                local_copy[k] = shared_globals[k]
         function_module = sys.modules[func.__module__]
         func_vars = set(filter(lambda x: hasattr(function_module, x), func.__code__.co_names))
         func_globals = set(
@@ -26,22 +28,28 @@ def _shared_global_decorator(func):
                    func.func_globals.keys()))
         used_globals = func_vars.intersection(func_globals)
         for variable in used_globals:
-            if variable in shared_globals:
-                if func.func_globals[variable] != shared_globals[variable]:
-                    func.func_globals[variable] = shared_globals[variable]
+            if variable in local_copy:
+                v_value = local_copy[variable]['value']
+                v_type = local_copy[variable]['type']
+                if v_type is types.FileType:
+                    local_copy[variable] = dict(value=open('my_file.log', 'w'), type=v_type)
+                if func.func_globals[variable] != local_copy[variable]['value']:
+                    func.func_globals[variable] = local_copy[variable]['value']
             else:
-                shared_globals[variable] = None
+                local_copy[variable] = dict(type=None, value=None)
 
         result = func(*args, **kwargs)
         for variable in used_globals:
-            if func.func_globals[variable] is not shared_globals[variable]:
-                print('new really')
-                shared_globals[variable] = func.func_globals[variable]
-                print(shared_globals)
-                print(func.func_globals[variable])
+            if func.func_globals[variable] is not local_copy[variable]['value']:
+                print('fooo')
+                v_value = func.func_globals[variable]
+                v_type = type(v_value)
+                if v_type is types.FileType:
+                    v_value = (v_value.name, v_value.mode)
+                local_copy[variable] = dict(value=v_value, type=v_type)
 
-        print(shared_globals)
-        print('end {0}'.format(func.__name__))
+        for k in local_copy:
+            shared_globals[k] = local_copy[k]
         return result
 
     return on_call
@@ -116,7 +124,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
         if frame:
             args, kwargs = endpoint.to_receive(frame)
             try:
-                return_value = remote_function(shared_globals, *args, **kwargs)
+                return_value = remote_function(*args, **kwargs)
             except Exception as e:
                 return_value = e
 
@@ -153,7 +161,8 @@ class Server(object):
         self._tcp_server_socket.close()
 
     def run(self):
-        shared_globals = {}
+        manager = multiprocessing.Manager()
+        shared_globals = manager.dict()
         print('new process')
         while True:
             tcp_client_socket, _ = self._tcp_server_socket.accept()
@@ -168,11 +177,10 @@ class Server(object):
 
     def __call__(self, networked_func, buffered):
         function_name = networked_func.__name__
-        networked_func = _shared_global_decorator(networked_func)
+        # networked_func = _shared_global_decorator(networked_func)
         def buffered_function(func):
-            def on_call(shared_globals, params):
-                print(shared_globals)
-                return [func(shared_globals, *args, **kwargs) for args, kwargs in params]
+            def on_call(params):
+                return [func(*args, **kwargs) for args, kwargs in params]
 
             return on_call
 

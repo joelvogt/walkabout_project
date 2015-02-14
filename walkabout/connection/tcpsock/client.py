@@ -15,7 +15,7 @@ def _process_wrapper(func, args_queue, tcp_socket, endpoint):
     # temp_file = tempfile.NamedTemporaryFile()
     buffer = deque()
     buffer_size = 0
-    buffer_limit = 50
+    buffer_limit = 100
     is_alive = True
     while is_alive:
         try:
@@ -40,6 +40,23 @@ def handle_return_value(buffer_size, endpoint, tcp_client_socket):
         return return_values
 
 
+class UnbufferedMethod(object):
+    def __init__(self, func, tcp_socket, return_handler, endpoint):
+        self._endpoint = endpoint
+        self._func = func
+        self._tcp_socket = tcp_socket
+        self._return_handler = return_handler
+        self._is_alive = True
+
+    def __call__(self, *args, **kwargs):
+        self._func(self._tcp_socket, self._endpoint.to_send((args, kwargs)))
+        self._is_alive = False
+        return self._return_handler(self._tcp_socket)
+
+    def is_alive(self):
+        return self._is_alive
+
+
 def unbuffered_method(func, tcp_socket, return_handler, endpoint):
     def on_call(*args, **kwargs):
         func(tcp_socket, endpoint.to_send((args, kwargs)))
@@ -57,6 +74,7 @@ class BufferedMethod(object):
         self._func = func
         self._tcp_socket = tcp_socket
         # self._temp_file = tempfile.NamedTemporaryFile()
+
         self._network_func = Thread(target=_process_wrapper,
                                     args=(func,
                                           self._args_queue, tcp_socket, endpoint))
@@ -80,6 +98,10 @@ class BufferedMethod(object):
                                       args=(return_handler, tcp_socket, self.return_values))
         self._return_handler.start()
 
+
+    def is_alive(self):
+        return self._return_handler.is_alive or self._network_func.is_alive
+
     def __iter__(self):
         self._return_handler.join()
         return self.return_values.__iter__()
@@ -88,11 +110,9 @@ class BufferedMethod(object):
         self._args_queue.put((args, kwargs))
 
     def __del__(self):
-        print('debug del')
         self._network_func.join()
         self._tcp_socket.send(CLOSE_CONNECTION)
         self._return_handler.join()
-        print('bue bye')
 
 
 def remote_function(function_ref, tcp_client_socket, serialized_content):
@@ -125,13 +145,13 @@ class Client(object):
         self._last_method_name = None
         self._buffered_methods = buffered_methods
         self._methods_registry = unbuffered_methods + buffered_methods
-        self._tcp_client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self._tcp_client_socket.connect(self._server_socket)
+        self._tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self._tcp_socket.connect(self._server_socket)
 
     def __getattr__(self, name):
         if name not in self._methods_registry:
             raise AttributeError("Client side exception: \
-            Remote 'module' doesn't have that function")
+            Remote 'module' doesn't contain the function %s" % name)
         if name != self._last_method_name:
             self._last_method_name = name
             func = functools.partial(remote_function,
@@ -140,13 +160,14 @@ class Client(object):
                                                self._buffer_size,
                                                self._endpoint)
 
+            if self._last_method is not None and self._last_method.is_alive():
+                self._tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self._tcp_socket.connect(self._server_socket)
             if name in self._buffered_methods:
-                tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                tcp_socket.connect(self._server_socket)
-                self._last_method = BufferedMethod(func, self._buffer_size, self._endpoint, return_handler, tcp_socket)
+                self._last_method = BufferedMethod(func, self._buffer_size, self._endpoint, return_handler,
+                                                   self._tcp_socket)
             else:
-
-                self._last_method = unbuffered_method(func, self._tcp_client_socket, return_handler, self._endpoint)
+                self._last_method = UnbufferedMethod(func, self._tcp_socket, return_handler, self._endpoint)
         return self._last_method
 
     def __del__(self):
@@ -154,5 +175,5 @@ class Client(object):
             if hasattr(self._last_method, '__del__'):
                 self._last_method.__del__()  # Jython won't call this destructor
             self._last_method = None
-        self._tcp_client_socket.send(CLOSE_CONNECTION)
-        self._tcp_client_socket.close()
+        self._tcp_socket.send(CLOSE_CONNECTION)
+        self._tcp_socket.close()
