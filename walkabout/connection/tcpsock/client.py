@@ -1,24 +1,25 @@
 # -*- coding:utf-8 -*-
-
 __author__ = u'Joël Vogt'
 import functools
 import socket
 from threading import Thread
 from Queue import Queue, Empty
 from collections import deque
+import time
 
 from walkabout.connection.tcpsock import HEADER_DELIMITER, MESSAGE_HEADER_END, MESSAGE_HEADER
-from walkabout.connection import CLOSE_CONNECTION
+from walkabout.connection import CLOSE_CONNECTION, FLUSH_BUFFER_REQUEST
 
 
-def _process_wrapper(func, args_queue, tcp_socket, endpoint):
-    # temp_file = tempfile.NamedTemporaryFile()
+def input_data_handler(func, args_queue, tcp_socket, endpoint):
     buffer = deque()
     buffer_size = 0
     buffer_limit = 100
     is_alive = True
+
     while is_alive:
         try:
+
             args = args_queue.get(timeout=4)
             buffer_size += 1
         except Empty:
@@ -29,15 +30,31 @@ def _process_wrapper(func, args_queue, tcp_socket, endpoint):
             to_serial_args = (([buffer.popleft() for i in range(buffer_size)],), {})
             buffer_size = 0
             func(tcp_socket, endpoint.to_send(to_serial_args))
-            # tcp_socket.send(CLOSE_CONNECTION)
+    tcp_socket.send(FLUSH_BUFFER_REQUEST)
 
 
 def handle_return_value(buffer_size, endpoint, tcp_client_socket):
-    return_values = endpoint.to_receive(tcp_client_socket.recv(buffer_size))
+    message = tcp_client_socket.recv(buffer_size)
+    if message == FLUSH_BUFFER_REQUEST:
+        return message
+
+    return_values = endpoint.to_receive(message)
     if isinstance(return_values, Exception):
         raise return_values
     else:
         return return_values
+
+
+def return_value_listener(_return_handler, _tcp_socket, return_values):
+    while True:
+        remote_return_values = _return_handler(_tcp_socket)
+        if remote_return_values == FLUSH_BUFFER_REQUEST:
+            break
+        for return_value in remote_return_values:
+            if isinstance(remote_return_values, Exception):
+                raise return_value
+
+            return_values.append(return_value)
 
 
 class UnbufferedMethod(object):
@@ -73,34 +90,18 @@ class BufferedMethod(object):
         self._buffer = deque()
         self._func = func
         self._tcp_socket = tcp_socket
-        # self._temp_file = tempfile.NamedTemporaryFile()
-
-        self._network_func = Thread(target=_process_wrapper,
+        self._network_func = Thread(target=input_data_handler,
                                     args=(func,
                                           self._args_queue, tcp_socket, endpoint))
 
         self._network_func.start()
-
-        def return_value_listener(_return_handler, _tcp_socket, return_values):
-            while True:
-                remote_return_values = _return_handler(_tcp_socket)
-                for return_value in remote_return_values:
-                    if isinstance(remote_return_values, Exception):
-                        raise return_value
-                    else:
-                        return_values.append(return_value)
-
-                if remote_return_values == CLOSE_CONNECTION:
-                    break
-
         self.return_values = deque()
         self._return_handler = Thread(target=return_value_listener,
                                       args=(return_handler, tcp_socket, self.return_values))
         self._return_handler.start()
 
-
     def is_alive(self):
-        return self._return_handler.is_alive or self._network_func.is_alive
+        return self._return_handler.isAlive() or self._network_func.isAlive()
 
     def __iter__(self):
         self._return_handler.join()
@@ -111,7 +112,6 @@ class BufferedMethod(object):
 
     def __del__(self):
         self._network_func.join()
-        self._tcp_socket.send(CLOSE_CONNECTION)
         self._return_handler.join()
 
 
@@ -137,7 +137,6 @@ def remote_function(function_ref, tcp_client_socket, serialized_content):
 
 class Client(object):
     def __init__(self, server_socket, buffer_size, unbuffered_methods, buffered_methods, endpoint):
-        self._methods_cache = {}
         self._server_socket = tuple(server_socket)
         self._buffer_size = buffer_size
         self._endpoint = endpoint
@@ -160,14 +159,17 @@ class Client(object):
                                                self._buffer_size,
                                                self._endpoint)
 
-            if self._last_method is not None and self._last_method.is_alive():
-                self._tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                self._tcp_socket.connect(self._server_socket)
+            """wait until the buffered method has transmitted all the data and collected the return values"""
+            while self._last_method is not None and self._last_method.is_alive():
+                time.sleep(0.5)
+            del self._last_method
             if name in self._buffered_methods:
                 self._last_method = BufferedMethod(func, self._buffer_size, self._endpoint, return_handler,
                                                    self._tcp_socket)
             else:
+
                 self._last_method = UnbufferedMethod(func, self._tcp_socket, return_handler, self._endpoint)
+
         return self._last_method
 
     def __del__(self):

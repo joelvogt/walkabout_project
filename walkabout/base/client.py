@@ -39,6 +39,7 @@ def import_module(module_name, directory_service_hostname='127.0.0.1', port=9000
     :param port: The port number of the walkabout_project directory serice
     :return: A Client object if the module is found, otherwise an ImportError error
     """
+
     modules_directory_service = xmlrpclib.ServerProxy(
         'http://%s:%d' %
         (
@@ -53,6 +54,7 @@ def import_module(module_name, directory_service_hostname='127.0.0.1', port=9000
     data_module = __import__(config['data_module_url'], fromlist=[''])
     results_module = __import__(config['results_module_url'], fromlist=[''])
     send_data_func = data_module.serialize
+
     receive_results_func = results_module.deserialize
     return client_module.Client(server_socket=config['server_socket'],
                                 buffer_size=config['buffer_size'],

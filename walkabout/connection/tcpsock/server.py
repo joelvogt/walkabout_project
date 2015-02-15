@@ -3,11 +3,8 @@ __author__ = u'Joël Vogt'
 import socket
 import multiprocessing
 import re
-from collections import defaultdict
-import sys
-import types
 
-from walkabout.connection import CLOSE_CONNECTION
+from walkabout.connection import CLOSE_CONNECTION, FLUSH_BUFFER_REQUEST
 from walkabout.connection.tcpsock import MESSAGE_HEADER
 from walkabout.helpers.datalib import InputStreamBuffer
 
@@ -15,47 +12,7 @@ from walkabout.helpers.datalib import InputStreamBuffer
 TIMEOUT = 10
 
 
-def _shared_global_decorator(func):
-    def on_call(shared_globals, *args, **kwargs):
-        local_copy = {}
-        if shared_globals:
-            for k in shared_globals.keys():
-                local_copy[k] = shared_globals[k]
-        function_module = sys.modules[func.__module__]
-        func_vars = set(filter(lambda x: hasattr(function_module, x), func.__code__.co_names))
-        func_globals = set(
-            filter(lambda x: type(func.func_globals[x]) not in [types.ModuleType, types.FunctionType, types.MethodType],
-                   func.func_globals.keys()))
-        used_globals = func_vars.intersection(func_globals)
-        for variable in used_globals:
-            if variable in local_copy:
-                v_value = local_copy[variable]['value']
-                v_type = local_copy[variable]['type']
-                if v_type is types.FileType:
-                    local_copy[variable] = dict(value=open('my_file.log', 'w'), type=v_type)
-                if func.func_globals[variable] != local_copy[variable]['value']:
-                    func.func_globals[variable] = local_copy[variable]['value']
-            else:
-                local_copy[variable] = dict(type=None, value=None)
-
-        result = func(*args, **kwargs)
-        for variable in used_globals:
-            if func.func_globals[variable] is not local_copy[variable]['value']:
-                print('fooo')
-                v_value = func.func_globals[variable]
-                v_type = type(v_value)
-                if v_type is types.FileType:
-                    v_value = (v_value.name, v_value.mode)
-                local_copy[variable] = dict(value=v_value, type=v_type)
-
-        for k in local_copy:
-            shared_globals[k] = local_copy[k]
-        return result
-
-    return on_call
-
-
-def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint, shared_globals):
+def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint):
     input_buffer = None
     total_data_size = 0
     remote_function = None
@@ -66,14 +23,19 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
     is_used_by_client = True
     next_frame = None
     pattern = re.compile('^HDR\|(\S+?)\|(\d+?)\|EOH(.*)', re.DOTALL)
+
+    event = None
     while is_used_by_client:
         while is_used_by_client:
             message = tcp_client_socket.recv(buffer_size)
             if CLOSE_CONNECTION == message:
                 is_used_by_client = False
-                frame = None
                 break
 
+            if FLUSH_BUFFER_REQUEST == message:
+                return_value = -1
+                event = FLUSH_BUFFER_REQUEST
+                break
             if not message:
                 is_used_by_client = False
                 return_value = -1
@@ -123,9 +85,11 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
         input_buffer = None
         if frame:
             args, kwargs = endpoint.to_receive(frame)
+            frame = None
             try:
                 return_value = remote_function(*args, **kwargs)
             except Exception as e:
+                e.message = "server exception {0}".format(e.message)
                 return_value = e
 
         if return_value != -1:
@@ -134,7 +98,10 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
             tcp_client_socket.send(endpoint.to_send(return_value))
             remote_function = None
             return_value = -1
-    tcp_client_socket.send(endpoint.to_send(CLOSE_CONNECTION))
+        if event:
+            tcp_client_socket.send(event)
+            event = None
+    tcp_client_socket.send(CLOSE_CONNECTION)
     tcp_client_socket.close()
 
 
@@ -152,7 +119,6 @@ class Server(object):
         self._tcp_server_socket.bind((self.hostname, self.port))
         self._tcp_server_socket.listen(5)
         self._ready = True
-        self._shared_globals = defaultdict()
 
     def _register_function(self, func, name):
         self._remote_functions[name] = func
@@ -161,9 +127,6 @@ class Server(object):
         self._tcp_server_socket.close()
 
     def run(self):
-        manager = multiprocessing.Manager()
-        shared_globals = manager.dict()
-        print('new process')
         while True:
             tcp_client_socket, _ = self._tcp_server_socket.accept()
             p = multiprocessing.Process(
@@ -171,13 +134,11 @@ class Server(object):
                 args=(tcp_client_socket,
                       self.buffer_size,
                       self._remote_functions,
-                      self._endpoint,
-                      shared_globals))
+                      self._endpoint))
             p.start()
 
     def __call__(self, networked_func, buffered):
         function_name = networked_func.__name__
-        # networked_func = _shared_global_decorator(networked_func)
         def buffered_function(func):
             def on_call(params):
                 return [func(*args, **kwargs) for args, kwargs in params]
