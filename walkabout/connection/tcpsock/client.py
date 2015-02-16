@@ -14,13 +14,13 @@ from walkabout.connection import CLOSE_CONNECTION, FLUSH_BUFFER_REQUEST
 def input_data_handler(func, args_queue, tcp_socket, endpoint):
     buffer = deque()
     buffer_size = 0
-    buffer_limit = 100
+    buffer_limit = 10
     is_alive = True
 
     while is_alive:
         try:
 
-            args = args_queue.get(timeout=4)
+            args = args_queue.get(timeout=10)
             buffer_size += 1
         except Empty:
             buffer_limit = buffer_size
