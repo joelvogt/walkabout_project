@@ -31,6 +31,7 @@ def input_data_handler(func, args_queue, tcp_socket, endpoint):
             to_serial_args = (([buffer.popleft() for i in range(buffer_size)],), {})
             buffer_size = 0
             func(tcp_socket, endpoint.to_send(to_serial_args))
+    print('exiting')
     tcp_socket.send(FLUSH_BUFFER_REQUEST)
 
 
