@@ -115,7 +115,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
             if isinstance(return_value, Exception):
                 is_used_by_client = False
             if isinstance(return_value, list):  # it's a temporary fix
-                for i in return_value:
+                for i in filter(lambda x: x is not None, return_value):
                     tcp_client_socket.send(endpoint.to_send(i))
             else:
                 tcp_client_socket.send(endpoint.to_send(return_value))
