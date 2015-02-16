@@ -36,12 +36,12 @@ def input_data_handler(func, args_queue, tcp_socket, endpoint):
 
 
 def handle_return_value(buffer_size, endpoint, tcp_client_socket):
-    message = tcp_client_socket.recv(buffer_size)
+    message = endpoint.to_receive(tcp_client_socket.recv(buffer_size))
     if message == FLUSH_BUFFER_REQUEST:
         print('flush request')
         return message
     print(message)
-    return_values = endpoint.to_receive(message)
+    return_values = message  # endpoint.to_receive(message)
     if isinstance(return_values, Exception):
         raise return_values
     else:
