@@ -123,14 +123,18 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
         if return_value != -1:
             if isinstance(return_value, Exception):
                 is_used_by_client = False
-            tcp_client_socket.send(endpoint.to_send(return_value))
+            if isinstance(return_value, list):  # it's a temporary fix
+                for i in return_value:
+                    tcp_client_socket.send(endpoint.to_send(i))
+            else:
+                tcp_client_socket.send(endpoint.to_send(return_value))
             remote_function = None
             return_value = -1
         if state == STATE_END_CALL:
             print('end call')
             if event:
                 print(event)
-                tcp_client_socket.send(endpoint.to_send([FLUSH_BUFFER_REQUEST]))
+                tcp_client_socket.send([FLUSH_BUFFER_REQUEST])
                 event = None
                 state = STATE_RUNNING
     print('exit function ')
