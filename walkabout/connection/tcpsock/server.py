@@ -130,11 +130,11 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
             print('end call')
             if event:
                 print(event)
-                tcp_client_socket.send(endpoint.to_send(FLUSH_BUFFER_REQUEST))
+                tcp_client_socket.send(endpoint.to_send([FLUSH_BUFFER_REQUEST]))
                 event = None
                 state = STATE_RUNNING
     print('exit function ')
-    # tcp_client_socket.send(CLOSE_CONNECTION)
+    tcp_client_socket.send(CLOSE_CONNECTION)
     tcp_client_socket.close()
 
 
