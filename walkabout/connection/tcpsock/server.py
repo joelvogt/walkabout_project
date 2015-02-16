@@ -134,7 +134,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                 event = None
                 state = STATE_RUNNING
     print('exit function ')
-    tcp_client_socket.send(CLOSE_CONNECTION)
+    # tcp_client_socket.send(CLOSE_CONNECTION)
     tcp_client_socket.close()
 
 
