@@ -80,6 +80,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
 
             diff = total_data_size - (input_buffer.size + len(message))
             if diff < 0:
+                print('diff is {0}'.format(diff))
                 next_frame = message[diff:]
                 message = message[:diff]
             input_buffer.extend(message)
