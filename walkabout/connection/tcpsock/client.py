@@ -20,7 +20,7 @@ def input_data_handler(func, args_queue, tcp_socket, endpoint):
     while is_alive:
         try:
 
-            args = args_queue.get(timeout=2)
+            args = args_queue.get(timeout=3)
             buffer_size += 1
         except Empty:
             print('timeout')
@@ -36,7 +36,8 @@ def input_data_handler(func, args_queue, tcp_socket, endpoint):
 
 
 def handle_return_value(buffer_size, endpoint, tcp_client_socket):
-    message = endpoint.to_receive(tcp_client_socket.recv(buffer_size))
+    message = tcp_client_socket.recv(buffer_size)
+
     if message == FLUSH_BUFFER_REQUEST:
         print('flush request')
         return message
