@@ -35,10 +35,13 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                 print(message[:3])
             elif state == STATE_FINISHING:
                 print('finishing')
+                print('size file {0}'.format(input_buffer.size))
                 if next_frame:
+                    print('next frame {0}'.format(len(next_frame)))
                     message = next_frame
                     next_frame = None
                 else:
+                    print('ending ')
                     state = STATE_END_CALL
                     return_value = -1
                     break
