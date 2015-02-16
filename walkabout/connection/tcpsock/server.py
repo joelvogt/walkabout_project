@@ -32,20 +32,17 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
         while is_used_by_client:
             if state == STATE_RUNNING:
                 message = tcp_client_socket.recv(buffer_size)
-                print(message[:10])
-                print(len(message))
+
             elif state == STATE_FINISHING:
-                print('finishing')
 
                 if next_frame:
-                    print('next frame {0}'.format(len(next_frame)))
+
                     print(next_frame[:10])
                     if input_buffer:
                         print(input_buffer.size)
                     message = next_frame
                     next_frame = None
                 else:
-                    print('ending {0}'.format(event))
 
                     state = STATE_END_CALL
                     return_value = -1
@@ -56,20 +53,17 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                 break
 
             if FLUSH_BUFFER_REQUEST == message:
-                print(FLUSH_BUFFER_REQUEST)
                 event = FLUSH_BUFFER_REQUEST
                 state = STATE_FINISHING
 
                 continue
             if not message:
-                print('message is None')
                 is_used_by_client = False
                 return_value = -1
                 break
 
             if not remote_function:
                 if next_frame:
-                    print('next frame in func {0}'.format(len(next_frame)))
                     message = ''.join([next_frame, message])
                     next_frame = None
                 if message[:3] != MESSAGE_HEADER:
@@ -90,7 +84,6 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
 
             diff = total_data_size - (input_buffer.size + len(message))
             if diff < 0:
-                print('diff is {0}'.format(diff))
                 next_frame = message[diff:]
                 message = message[:diff]
             input_buffer.extend(message)
@@ -131,13 +124,10 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
             remote_function = None
             return_value = -1
         if state == STATE_END_CALL:
-            print('end call')
             if event:
-                print(event)
-                tcp_client_socket.send([FLUSH_BUFFER_REQUEST])
+                tcp_client_socket.send(FLUSH_BUFFER_REQUEST)
                 event = None
                 state = STATE_RUNNING
-    print('exit function ')
     # tcp_client_socket.send(CLOSE_CONNECTION)
     tcp_client_socket.close()
 
