@@ -42,7 +42,8 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                     print(next_frame[:10])
                     if input_buffer:
                         print(input_buffer.size)
-                    message = ''
+                    message = next_frame
+                    next_frame = None
                 else:
                     print('ending ')
                     state = STATE_END_CALL
@@ -57,7 +58,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                 print(FLUSH_BUFFER_REQUEST)
                 event = FLUSH_BUFFER_REQUEST
                 state = STATE_FINISHING
-                message = ''
+
                 continue
             if not message:
                 print('message is None')
@@ -69,7 +70,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                 if next_frame:
                     print('next frame in func {0}'.format(len(next_frame)))
                     message = ''.join([next_frame, message])
-                next_frame = None
+                    next_frame = None
                 if message[:3] != MESSAGE_HEADER:
                     return_value = ReferenceError(
                         'Message does not contain header information and a function reference')
