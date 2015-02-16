@@ -38,11 +38,11 @@ def input_data_handler(func, args_queue, tcp_socket, endpoint):
 def handle_return_value(buffer_size, endpoint, tcp_client_socket):
     message = tcp_client_socket.recv(buffer_size)
 
-    if message == FLUSH_BUFFER_REQUEST:
+    if message[-3:] == FLUSH_BUFFER_REQUEST:  # TODO write return value handler for buffered functions
         print('flush request')
-        return message
+        return -1
     if message == CLOSE_CONNECTION:
-        return
+        return -1
     # print(message)
     return_values = endpoint.to_receive(message)
     if isinstance(return_values, Exception):
@@ -53,14 +53,14 @@ def handle_return_value(buffer_size, endpoint, tcp_client_socket):
 
 def return_value_listener(_return_handler, _tcp_socket, return_values):
     while True:
-        remote_return_values = _return_handler(_tcp_socket)
-        if remote_return_values == FLUSH_BUFFER_REQUEST:
+        remote_return_value = _return_handler(_tcp_socket)
+        if remote_return_value == -1:
             break
-        for return_value in remote_return_values:
-            if isinstance(remote_return_values, Exception):
-                raise return_value
 
-            return_values.append(return_value)
+        if isinstance(remote_return_value, Exception):
+            raise remote_return_value
+
+        return_values.append(remote_return_value)
 
 
 class UnbufferedMethod(object):
