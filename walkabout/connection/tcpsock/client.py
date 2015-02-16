@@ -20,9 +20,10 @@ def input_data_handler(func, args_queue, tcp_socket, endpoint):
     while is_alive:
         try:
 
-            args = args_queue.get(timeout=10)
+            args = args_queue.get(timeout=2)
             buffer_size += 1
         except Empty:
+            print('timeout')
             buffer_limit = buffer_size
             is_alive = False
         buffer.append(args)
