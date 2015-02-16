@@ -29,6 +29,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
         while is_used_by_client:
             if next_frame:
                 message = next_frame
+                next_frame = None
             else:
                 message = tcp_client_socket.recv(buffer_size)
             if CLOSE_CONNECTION == message:
