@@ -36,6 +36,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                 return_value = -1
                 if next_frame:
                     print('next frame {0}'.format(len(next_frame)))
+                    print(next_frame[:10])
                 if frame:
                     print('frame')
                 print('end of bufer')
