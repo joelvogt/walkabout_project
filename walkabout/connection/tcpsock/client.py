@@ -41,8 +41,10 @@ def handle_return_value(buffer_size, endpoint, tcp_client_socket):
     if message == FLUSH_BUFFER_REQUEST:
         print('flush request')
         return message
+    if message == CLOSE_CONNECTION:
+        return
     # print(message)
-    return_values = message  # endpoint.to_receive(message)
+    return_values = endpoint.to_receive(message)
     if isinstance(return_values, Exception):
         raise return_values
     else:
