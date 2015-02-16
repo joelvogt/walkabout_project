@@ -33,6 +33,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
             if state == STATE_RUNNING:
                 message = tcp_client_socket.recv(buffer_size)
             elif state == STATE_FINISHING:
+                print('finishing')
                 if next_frame:
                     message = next_frame
                     next_frame = None
@@ -46,6 +47,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                 break
 
             if FLUSH_BUFFER_REQUEST == message:
+                print(FLUSH_BUFFER_REQUEST)
                 event = FLUSH_BUFFER_REQUEST
                 state = STATE_FINISHING
                 continue
