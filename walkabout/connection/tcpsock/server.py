@@ -36,8 +36,6 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
             elif state == STATE_FINISHING:
 
                 if next_frame:
-
-                    print(next_frame[:10])
                     if input_buffer:
                         print(input_buffer.size)
                     message = next_frame
