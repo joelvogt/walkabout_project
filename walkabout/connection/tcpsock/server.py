@@ -23,13 +23,16 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
     is_used_by_client = True
     next_frame = None
     pattern = re.compile('^HDR\|(\S+?)\|(\d+?)\|EOH(.*)', re.DOTALL)
-
+    message = None
     event = None
     while is_used_by_client:
         while is_used_by_client:
             if next_frame:
+                print('next frame {0}'.format(len(next_frame)))
+                print(next_frame[:10])
                 message = next_frame
                 next_frame = None
+
             else:
                 message = tcp_client_socket.recv(buffer_size)
             if CLOSE_CONNECTION == message:
@@ -52,9 +55,9 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                 break
 
             if not remote_function:
-                if next_frame:
-                    message = ''.join([next_frame, message])
-                    next_frame = None
+                # if next_frame:
+                # message = ''.join([next_frame, message])
+                #     next_frame = None
                 if message[:3] != MESSAGE_HEADER:
                     return_value = ReferenceError(
                         'Message does not contain header information and a function reference')
