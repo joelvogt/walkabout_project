@@ -35,7 +35,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
             if FLUSH_BUFFER_REQUEST == message:
                 return_value = -1
                 if next_frame:
-                    print('next frame')
+                    print('next frame {0}'.format(len(next_frame)))
                 if frame:
                     print('frame')
                 print('end of bufer')
