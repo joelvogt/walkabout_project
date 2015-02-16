@@ -35,9 +35,11 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
             elif state == STATE_FINISHING:
                 if next_frame:
                     message = next_frame
+                    next_frame = None
                 else:
                     state = STATE_END_CALL
                     return_value = -1
+                    break
 
             if CLOSE_CONNECTION == message:
                 is_used_by_client = False
