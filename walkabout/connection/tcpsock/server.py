@@ -10,7 +10,9 @@ from walkabout.helpers.datalib import InputStreamBuffer
 
 
 TIMEOUT = 10
-
+STATE_RUNNING = 0
+STATE_FINISHING = 1
+STATE_END_CALL = 2
 
 def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint):
     input_buffer = None
@@ -25,34 +27,25 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
     pattern = re.compile('^HDR\|(\S+?)\|(\d+?)\|EOH(.*)', re.DOTALL)
     message = None
     event = None
+    state = STATE_RUNNING
     while is_used_by_client:
         while is_used_by_client:
-            if next_frame:
-                print('next frame {0}'.format(len(next_frame)))
-                print(next_frame[:10])
-                message = next_frame
-                next_frame = None
-
-            else:
+            if state == STATE_RUNNING:
                 message = tcp_client_socket.recv(buffer_size)
-                print('message')
-                print(message[:10])
-                print(len(message))
+            elif state == STATE_FINISHING:
+                if next_frame:
+                    message = next_frame
+                else:
+                    state = STATE_END_CALL
+                    return_value = -1
+
             if CLOSE_CONNECTION == message:
                 is_used_by_client = False
                 break
 
             if FLUSH_BUFFER_REQUEST == message:
-                return_value = -1
-                print('flush buffer')
-                if next_frame:
-                    print('next frame {0}'.format(len(next_frame)))
-                    print(next_frame[:10])
-                if frame:
-                    print('frame')
-                print('end of bufer')
                 event = FLUSH_BUFFER_REQUEST
-                break
+                state = STATE_FINISHING
             if not message:
                 is_used_by_client = False
                 return_value = -1
@@ -116,9 +109,10 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
             tcp_client_socket.send(endpoint.to_send(return_value))
             remote_function = None
             return_value = -1
-        if event:
-            tcp_client_socket.send(event)
-            event = None
+        if state == STATE_END_CALL:
+            if event:
+                tcp_client_socket.send(event)
+                event = None
     tcp_client_socket.send(CLOSE_CONNECTION)
     tcp_client_socket.close()
 
