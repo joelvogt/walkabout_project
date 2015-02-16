@@ -32,7 +32,8 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
         while is_used_by_client:
             if state == STATE_RUNNING:
                 message = tcp_client_socket.recv(buffer_size)
-                print(message[:3])
+                print(message[:10])
+                print(len(message))
             elif state == STATE_FINISHING:
                 print('finishing')
                 print('size file {0}'.format(input_buffer.size))
