@@ -35,6 +35,8 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
 
             else:
                 message = tcp_client_socket.recv(buffer_size)
+                print('message')
+                print(message[:10])
             if CLOSE_CONNECTION == message:
                 is_used_by_client = False
                 break
