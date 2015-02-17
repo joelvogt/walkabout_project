@@ -129,7 +129,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                           message=serialized_content,
                           delimiter=HEADER_DELIMITER,
                           header_end=MESSAGE_HEADER_END)
-            tcp_client_socket.send(endpoint.to_send(i))
+            tcp_client_socket.send(endpoint.to_send(message))
             # if isinstance(return_value, list):  # it's a temporary fix
             # for i in filter(lambda x: x is not None, return_value):
             #         tcp_client_socket.send(endpoint.to_send(i))
