@@ -45,9 +45,6 @@ def handle_return_value(buffer_size, endpoint, tcp_client_socket, is_buffering):
         else:
             message = next_frame
             next_frame = None
-        # if len(message) < 3:
-        # return -1
-
 
         if next_frame:
             message = ''.join([next_frame, message])
