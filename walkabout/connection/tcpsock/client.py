@@ -36,7 +36,7 @@ def input_data_handler(func, args_queue, tcp_socket, endpoint):
 
 def handle_return_value(buffer_size, endpoint, tcp_client_socket, is_buffering):
     next_frame = None
-    return_values = []
+    return_values = deque()
     receiving = True
 
     while True:
