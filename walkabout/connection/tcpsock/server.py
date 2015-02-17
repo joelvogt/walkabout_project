@@ -2,10 +2,9 @@
 __author__ = u'Joël Vogt'
 import socket
 import multiprocessing
-import re
 
 from walkabout.connection import CLOSE_CONNECTION, FLUSH_BUFFER_REQUEST
-from walkabout.connection.tcpsock import MESSAGE_HEADER
+from walkabout.connection.tcpsock import MESSAGE_HEADER, HEADER_DELIMITER, MESSAGE_HEADER_END, get_header_from_message
 from walkabout.helpers.datalib import InputStreamBuffer
 
 
@@ -18,13 +17,14 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
     input_buffer = None
     total_data_size = 0
     remote_function = None
-    """ return_value == -1 if no function was called.
+    """ return_value == -1 if no function_ref was called.
     None can be returned by functions without explicit return value"""
     return_value = -1
     frame = None
+    function_ref = None
     is_used_by_client = True
     next_frame = None
-    pattern = re.compile('^HDR\|(\S+?)\|(\d+?)\|EOH(.*)', re.DOTALL)
+
     message = None
     event = None
     state = STATE_RUNNING
@@ -66,17 +66,16 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                     next_frame = None
                 if message[:3] != MESSAGE_HEADER:
                     return_value = ReferenceError(
-                        'Message does not contain header information and a function reference')
+                        'Message does not contain header information and a function_ref reference')
                     frame = None
                     break
-                function, message_length, message = re.match(pattern, message).groups()
                 try:
-                    remote_function = remote_functions[function]
-                    total_data_size = int(message_length)
+                    function_ref, total_data_size, message = get_header_from_message(message)
+                    remote_function = remote_functions[function_ref]
                     input_buffer = InputStreamBuffer(buffer_size=buffer_size)
                 except IndexError:
                     return_value = AttributeError("Server side exception: \
-                    Remote module doesn't have the function you tried to call")
+                    Remote module doesn't have the function_ref you tried to call")
                     frame = None
                     break
 
@@ -114,6 +113,22 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
         if return_value != -1:
             if isinstance(return_value, Exception):
                 is_used_by_client = False
+            serialized_content = endpoint.to_send(return_value)
+            message = '%(header)s' \
+                      '%(delimiter)s' \
+                      '%(function_ref)s' \
+                      '%(delimiter)s' \
+                      '%(message_length)d' \
+                      '%(delimiter)s' \
+                      '%(header_end)s' \
+                      '%(message)s' % \
+                      dict(
+                          header=MESSAGE_HEADER,
+                          function_ref=function_ref,
+                          message_length=len(serialized_content),
+                          message=serialized_content,
+                          delimiter=HEADER_DELIMITER,
+                          header_end=MESSAGE_HEADER_END)
             if isinstance(return_value, list):  # it's a temporary fix
                 for i in filter(lambda x: x is not None, return_value):
                     tcp_client_socket.send(endpoint.to_send(i))
