@@ -35,6 +35,10 @@ def write(event):
     logfile.flush()
 
 
+@networked_function(buffered=True)
+def b_test_me(arg):
+    return arg ** 2
+
 @networked_function(buffered=False)
 def test_me(arg):
-    print arg ** 2
+    return arg ** 2
