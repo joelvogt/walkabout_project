@@ -36,9 +36,10 @@ def input_data_handler(func, args_queue, tcp_socket, endpoint):
 
 
 def handle_return_value(buffer_size, endpoint, tcp_client_socket):
-    frame = None
+    # frame = None
     next_frame = None
     return_values = []
+
     while True:
         message = tcp_client_socket.recv(buffer_size)
         print(message)
@@ -51,14 +52,18 @@ def handle_return_value(buffer_size, endpoint, tcp_client_socket):
         if len(message) < 3:
             continue
         function_ref, total_data_size, frame = get_header_from_message(message)
+        print(frame)
+        print(len(frame))
+
         if len(frame) > total_data_size:
             next_frame = frame[total_data_size:]
             frame = frame[:total_data_size]
+        elif len(frame) < total_data_size:
+            next_frame = frame
         if len(frame) == total_data_size:
             return_values.append(frame)
             frame = None
-        if len(frame) < total_data_size:
-            next_frame = frame
+
     print(return_values)
     return return_values
 
