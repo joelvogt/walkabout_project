@@ -37,8 +37,10 @@ def write(event):
 
 @networked_function(buffered=True)
 def b_test_me(arg):
+    print(arg)
     return arg ** 2
 
 @networked_function(buffered=False)
 def test_me(arg):
+    print(arg)
     return arg ** 2

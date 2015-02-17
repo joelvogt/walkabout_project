@@ -21,17 +21,16 @@ def input_data_handler(func, args_queue, tcp_socket, endpoint):
         try:
 
             args = args_queue.get(timeout=3)
+            buffer.append(args)
             buffer_size += 1
         except Empty:
-            print('timeout')
             buffer_limit = buffer_size
             is_alive = False
-        buffer.append(args)
+
         if buffer_size == buffer_limit:
             to_serial_args = (([buffer.popleft() for i in range(buffer_size)],), {})
             buffer_size = 0
             func(tcp_socket, endpoint.to_send(to_serial_args))
-    print('exiting')
     tcp_socket.send(FLUSH_BUFFER_REQUEST)
 
 
@@ -39,7 +38,6 @@ def handle_return_value(buffer_size, endpoint, tcp_client_socket):
     # frame = None
     next_frame = None
     return_values = []
-    state = True
     while True:
 
         if next_frame:  # and len(next_frame) > 2:
@@ -64,10 +62,9 @@ def handle_return_value(buffer_size, endpoint, tcp_client_socket):
         elif len(frame) < total_data_size:
             next_frame = frame
         if len(frame) == total_data_size:
-            return_values.append(endpoint.to_receive(frame))
+            return_values = endpoint.to_receive(frame)
         if not next_frame:
             break
-
     return return_values
 
 def return_value_listener(_return_handler, _tcp_socket, return_values):
@@ -91,7 +88,7 @@ class UnbufferedMethod(object):
     def __call__(self, *args, **kwargs):
         self._func(self._tcp_socket, self._endpoint.to_send((args, kwargs)))
         self._is_alive = False
-        return self._return_handler(self._tcp_socket)[0]
+        return self._return_handler(self._tcp_socket)
 
     def is_alive(self):
         return self._is_alive
