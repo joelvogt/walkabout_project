@@ -114,8 +114,8 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
             if isinstance(return_value, Exception):
                 is_used_by_client = False
             serialized_content = endpoint.to_send(return_value)
-            msg = '%(header)s' \
-                  '%(delimiter)s' \
+            return_message = '%(header)s' \
+                             '%(delimiter)s' \
                       '%(function_ref)s' \
                       '%(delimiter)s' \
                       '%(message_length)d' \
@@ -129,7 +129,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                           message=serialized_content,
                           delimiter=HEADER_DELIMITER,
                           header_end=MESSAGE_HEADER_END)
-            tcp_client_socket.send(msg)
+            tcp_client_socket.send(return_message)
             # if isinstance(return_value, list):  # it's a temporary fix
             # for i in filter(lambda x: x is not None, return_value):
             #         tcp_client_socket.send(endpoint.to_send(i))
@@ -142,7 +142,8 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
         if state == STATE_END_CALL:
             print('ending')
             if event:
-                print('send event')
+                print('send event {0}'.format(event))
+
                 tcp_client_socket.send(event)
                 event = None
                 state = STATE_RUNNING

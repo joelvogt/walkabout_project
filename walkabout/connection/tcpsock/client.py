@@ -41,10 +41,12 @@ def handle_return_value(buffer_size, endpoint, tcp_client_socket):
     return_values = []
 
     while True:
+        print('new')
         message = tcp_client_socket.recv(buffer_size)
         print(message[:10])
         if len(message) == 3:
             if message == FLUSH_BUFFER_REQUEST:
+                print('end')
                 return message
         if next_frame:
             message = ''.join([next_frame, message])
@@ -58,11 +60,12 @@ def handle_return_value(buffer_size, endpoint, tcp_client_socket):
         elif len(frame) < total_data_size:
             next_frame = frame
         if len(frame) == total_data_size:
-            return_values = endpoint.to_receive(frame)
-        if not next_frame:
-            break
-
-    return return_values
+            print('end')
+            return endpoint.to_receive(frame)
+    # if not next_frame:
+    #         break
+    #
+    # return return_values
 
 
     if message[-3:] == FLUSH_BUFFER_REQUEST:  # TODO write return value handler for buffered functions
