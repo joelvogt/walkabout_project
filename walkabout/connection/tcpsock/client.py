@@ -100,6 +100,7 @@ class UnbufferedMethod(object):
 
     def __call__(self, *args, **kwargs):
         self._func(self._tcp_socket, self._endpoint.to_send((args, kwargs)))
+        self._tcp_socket.send(FLUSH_BUFFER_REQUEST)
         self._is_alive = False
         return self._return_handler(self._tcp_socket)
 
@@ -107,12 +108,12 @@ class UnbufferedMethod(object):
         return self._is_alive
 
 
-def unbuffered_method(func, tcp_socket, return_handler, endpoint):
-    def on_call(*args, **kwargs):
-        func(tcp_socket, endpoint.to_send((args, kwargs)))
-        return return_handler(tcp_socket)
-
-    return on_call
+# def unbuffered_method(func, tcp_socket, return_handler, endpoint):
+# def on_call(*args, **kwargs):
+#         func(tcp_socket, endpoint.to_send((args, kwargs)))
+#         return return_handler(tcp_socket)
+#
+#     return on_call
 
 
 class BufferedMethod(object):

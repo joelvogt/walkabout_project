@@ -129,17 +129,19 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                           message=serialized_content,
                           delimiter=HEADER_DELIMITER,
                           header_end=MESSAGE_HEADER_END)
-            if isinstance(return_value, list):  # it's a temporary fix
-                for i in filter(lambda x: x is not None, return_value):
-                    tcp_client_socket.send(endpoint.to_send(i))
-            else:
-                tcp_client_socket.send(endpoint.to_send(return_value))
-                state == STATE_END_CALL
-                event = FLUSH_BUFFER_REQUEST
+            tcp_client_socket.send(endpoint.to_send(i))
+            # if isinstance(return_value, list):  # it's a temporary fix
+            # for i in filter(lambda x: x is not None, return_value):
+            #         tcp_client_socket.send(endpoint.to_send(i))
+            # else:
+            #     tcp_client_socket.send(endpoint.to_send(return_value))
+            #     state == STATE_END_CALL
+            #     event = FLUSH_BUFFER_REQUEST
             remote_function = None
             return_value = -1
         if state == STATE_END_CALL:
             if event:
+                print(event)
                 tcp_client_socket.send(event)
                 event = None
                 state = STATE_RUNNING
