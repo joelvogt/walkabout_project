@@ -43,7 +43,7 @@ def handle_return_value(buffer_size, endpoint, tcp_client_socket):
         return -1
     if message == CLOSE_CONNECTION:
         return -1
-    # print(message)
+
     return_values = endpoint.to_receive(message)
     if isinstance(return_values, Exception):
         raise return_values
