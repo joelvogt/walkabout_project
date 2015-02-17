@@ -11,6 +11,7 @@ pattern = re.compile('^HDR\|(\S+?)\|(\d+?)\|EOH(.*)', re.DOTALL)
 
 
 def get_header_from_message(message):
+    global pattern
     function_ref, message_length, message = re.match(pattern, message).groups()
     total_data_size = int(message_length)
     return function_ref, total_data_size, message

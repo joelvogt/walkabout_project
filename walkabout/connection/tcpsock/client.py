@@ -7,7 +7,7 @@ from Queue import Queue, Empty
 from collections import deque
 import time
 
-from walkabout.connection.tcpsock import HEADER_DELIMITER, MESSAGE_HEADER_END, MESSAGE_HEADER
+from walkabout.connection.tcpsock import HEADER_DELIMITER, MESSAGE_HEADER_END, MESSAGE_HEADER, get_header_from_message
 from walkabout.connection import CLOSE_CONNECTION, FLUSH_BUFFER_REQUEST
 
 
@@ -36,7 +36,30 @@ def input_data_handler(func, args_queue, tcp_socket, endpoint):
 
 
 def handle_return_value(buffer_size, endpoint, tcp_client_socket):
-    message = tcp_client_socket.recv(buffer_size)
+    frame = None
+    next_frame = None
+    return_values = []
+    message = None
+    while True:
+        message = tcp_client_socket.recv(buffer_size)
+        if len(message) == 3:
+            if message == FLUSH_BUFFER_REQUEST:
+                break
+        if next_frame:
+            message = ''.joing([next_frame, message])
+            next_frame = None
+        function_ref, total_data_size, frame = get_header_from_message(message)
+        if len(frame) > total_data_size:
+            next_frame = frame[total_data_size:]
+            frame = frame[:total_data_size]
+        if len(frame) == total_data_size:
+            return_values.append(frame)
+            frame = None
+        if len(frame) < total_data_size:
+            next_frame = frame
+    print(return_values)
+    return return_values
+
 
     if message[-3:] == FLUSH_BUFFER_REQUEST:  # TODO write return value handler for buffered functions
         print('flush request')
