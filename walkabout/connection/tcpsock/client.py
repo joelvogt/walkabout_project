@@ -42,29 +42,26 @@ def handle_return_value(buffer_size, endpoint, tcp_client_socket):
 
     while True:
         message = tcp_client_socket.recv(buffer_size)
-        print(message)
+        print(message[:10])
         if len(message) == 3:
             if message == FLUSH_BUFFER_REQUEST:
-                break
+                return message
         if next_frame:
             message = ''.join([next_frame, message])
             next_frame = None
         if len(message) < 3:
             continue
         function_ref, total_data_size, frame = get_header_from_message(message)
-        print(frame)
-        print(len(frame))
-
         if len(frame) > total_data_size:
             next_frame = frame[total_data_size:]
             frame = frame[:total_data_size]
         elif len(frame) < total_data_size:
             next_frame = frame
         if len(frame) == total_data_size:
-            return_values.append(frame)
-            frame = None
+            return_values = endpoint.to_receive(frame)
+        if not next_frame:
+            break
 
-    print(return_values)
     return return_values
 
 
@@ -103,7 +100,6 @@ class UnbufferedMethod(object):
 
     def __call__(self, *args, **kwargs):
         self._func(self._tcp_socket, self._endpoint.to_send((args, kwargs)))
-        self._tcp_socket.send(FLUSH_BUFFER_REQUEST)
         self._is_alive = False
         # fo
         return self._return_handler(self._tcp_socket)

@@ -140,8 +140,9 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
             remote_function = None
             return_value = -1
         if state == STATE_END_CALL:
+            print('ending')
             if event:
-                print(event)
+                print('send event')
                 tcp_client_socket.send(event)
                 event = None
                 state = STATE_RUNNING
