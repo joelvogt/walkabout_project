@@ -113,30 +113,24 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
         if return_value != -1:
             if isinstance(return_value, Exception):
                 is_used_by_client = False
-            serialized_content = endpoint.to_send(return_value)
-            return_message = '%(header)s' \
-                             '%(delimiter)s' \
-                      '%(function_ref)s' \
-                      '%(delimiter)s' \
-                      '%(message_length)d' \
-                      '%(delimiter)s' \
-                      '%(header_end)s' \
-                      '%(message)s' % \
-                      dict(
-                          header=MESSAGE_HEADER,
-                          function_ref=function_ref,
-                          message_length=len(serialized_content),
-                          message=serialized_content,
-                          delimiter=HEADER_DELIMITER,
-                          header_end=MESSAGE_HEADER_END)
-            tcp_client_socket.send(return_message)
-            # if isinstance(return_value, list):  # it's a temporary fix
-            # for i in filter(lambda x: x is not None, return_value):
-            #         tcp_client_socket.send(endpoint.to_send(i))
-            # else:
-            #     tcp_client_socket.send(endpoint.to_send(return_value))
-            #     state == STATE_END_CALL
-            #     event = FLUSH_BUFFER_REQUEST
+            if all(return_value):
+                serialized_content = endpoint.to_send(return_value)
+                return_message = '%(header)s' \
+                                 '%(delimiter)s' \
+                                 '%(function_ref)s' \
+                                 '%(delimiter)s' \
+                                 '%(message_length)d' \
+                                 '%(delimiter)s' \
+                                 '%(header_end)s' \
+                                 '%(message)s' % \
+                                 dict(
+                                     header=MESSAGE_HEADER,
+                                     function_ref=function_ref,
+                                     message_length=len(serialized_content),
+                                     message=serialized_content,
+                                     delimiter=HEADER_DELIMITER,
+                                     header_end=MESSAGE_HEADER_END)
+                tcp_client_socket.send(return_message)
             remote_function = None
             return_value = -1
         if state == STATE_END_CALL:

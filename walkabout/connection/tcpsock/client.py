@@ -39,15 +39,19 @@ def handle_return_value(buffer_size, endpoint, tcp_client_socket):
     # frame = None
     next_frame = None
     return_values = []
-
+    state = True
     while True:
-        print('new')
-        message = tcp_client_socket.recv(buffer_size)
-        print(message[:10])
-        if len(message) == 3:
-            if message == FLUSH_BUFFER_REQUEST:
-                print('end')
-                return message
+
+        if next_frame:  # and len(next_frame) > 2:
+            message = next_frame
+            next_frame = None
+        else:
+            message = tcp_client_socket.recv(buffer_size)
+        if len(message) < 3:
+            return -2
+        if message == FLUSH_BUFFER_REQUEST:
+            return -1
+
         if next_frame:
             message = ''.join([next_frame, message])
             next_frame = None
@@ -60,37 +64,20 @@ def handle_return_value(buffer_size, endpoint, tcp_client_socket):
         elif len(frame) < total_data_size:
             next_frame = frame
         if len(frame) == total_data_size:
-            print('end')
-            return endpoint.to_receive(frame)
-    # if not next_frame:
-    #         break
-    #
-    # return return_values
+            return_values.append(endpoint.to_receive(frame))
+        if not next_frame:
+            break
 
-
-    if message[-3:] == FLUSH_BUFFER_REQUEST:  # TODO write return value handler for buffered functions
-        print('flush request')
-        return -1
-    if message == CLOSE_CONNECTION:
-        return -1
-
-    return_values = endpoint.to_receive(message)
-    if isinstance(return_values, Exception):
-        raise return_values
-    else:
-        return return_values
-
+    return return_values
 
 def return_value_listener(_return_handler, _tcp_socket, return_values):
     while True:
         remote_return_value = _return_handler(_tcp_socket)
         if remote_return_value == -1:
             break
-
         if isinstance(remote_return_value, Exception):
             raise remote_return_value
-
-        return_values.append(remote_return_value)
+        return_values.extend(remote_return_value)
 
 
 class UnbufferedMethod(object):
@@ -104,8 +91,7 @@ class UnbufferedMethod(object):
     def __call__(self, *args, **kwargs):
         self._func(self._tcp_socket, self._endpoint.to_send((args, kwargs)))
         self._is_alive = False
-        # fo
-        return self._return_handler(self._tcp_socket)
+        return self._return_handler(self._tcp_socket)[0]
 
     def is_alive(self):
         return self._is_alive
