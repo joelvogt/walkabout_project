@@ -39,7 +39,6 @@ def handle_return_value(buffer_size, endpoint, tcp_client_socket):
     frame = None
     next_frame = None
     return_values = []
-    message = None
     while True:
         message = tcp_client_socket.recv(buffer_size)
         print(message)
@@ -47,10 +46,9 @@ def handle_return_value(buffer_size, endpoint, tcp_client_socket):
             if message == FLUSH_BUFFER_REQUEST:
                 break
         if next_frame:
-            message = ''.joing([next_frame, message])
+            message = ''.join([next_frame, message])
             next_frame = None
         if len(message) < 3:
-            print(message)
             continue
         function_ref, total_data_size, frame = get_header_from_message(message)
         if len(frame) > total_data_size:
