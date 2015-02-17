@@ -102,6 +102,7 @@ class UnbufferedMethod(object):
         self._func(self._tcp_socket, self._endpoint.to_send((args, kwargs)))
         self._tcp_socket.send(FLUSH_BUFFER_REQUEST)
         self._is_alive = False
+        # fo
         return self._return_handler(self._tcp_socket)
 
     def is_alive(self):
