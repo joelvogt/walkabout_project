@@ -26,6 +26,7 @@ else:
         serialization=dict(
             data='python_pickling',
             results='python_pickling')))
+    cernthon_config = CernthonConfig(client_id, modules)
 
 
 def import_module(module_name, directory_service_hostname='127.0.0.1', port=9000):

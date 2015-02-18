@@ -1,6 +1,7 @@
 # -*- coding:utf-8 -*-
 __author__ = u'Joël Vogt'
 import importlib
+
 from UserDict import UserDict
 
 from walkabout.serialization import SerializationEndpoint
@@ -12,7 +13,7 @@ class ConfigParamters(UserDict):
 
     def __getitem__(self, item):
         try:
-            return UserDict.__getitem__(self, item)
+            return self.data[item]
         except KeyError:
             return self.data['default']
 
