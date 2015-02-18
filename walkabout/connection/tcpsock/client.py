@@ -28,7 +28,7 @@ def input_data_handler(func, args_queue, tcp_socket, endpoint):
             is_alive = False
 
         if buffer_size == buffer_limit:
-            to_serial_args = (([buffer.popleft() for i in range(buffer_size)],), {})
+            to_serial_args = ((map(lambda x: buffer.popleft(), range(buffer_size)),), {})
             buffer_size = 0
             func(tcp_socket, endpoint.to_send(to_serial_args))
     tcp_socket.send(FLUSH_BUFFER_REQUEST)
