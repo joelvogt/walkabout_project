@@ -9,7 +9,10 @@ from walkabout.serialization import SerializationEndpoint
 
 class ConfigParamters(UserDict):
     def __init__(self, *args, **kwargs):
-        UserDict.__init__(self, *args, **kwargs)
+        if 'data' in kwargs:
+            self.data = kwargs['data']
+        else:
+            UserDict.__init__(self, *args, **kwargs)
 
     def __getitem__(self, item):
         try:

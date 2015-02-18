@@ -1,5 +1,5 @@
 # -*- coding:utf-8 -*-
-from walkabout.helpers.configlib import ModuleConfig
+from walkabout.helpers.configlib import ModuleConfig, ConfigParamters
 
 __author__ = u'Joël Vogt'
 import imp
@@ -36,6 +36,7 @@ class ModulesDirectory(object):
         module_binder_process.start()
 
     def import_module(self, module_name, client_id, config):
+        config = ConfigParamters(**config)
         if client_id not in self._modules_processes:
             self._modules_processes[client_id] = {}
 
