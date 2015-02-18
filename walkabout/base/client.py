@@ -1,4 +1,6 @@
 # -*-coding:utf-8 *-
+from walkabout.helpers.configlib import ConfigParamters
+
 __author__ = u'Joël Vogt'
 import xmlrpclib
 import imp
@@ -6,6 +8,7 @@ from collections import namedtuple
 import os
 import sys
 import time
+
 
 from walkabout.serialization import SerializationEndpoint
 
@@ -17,26 +20,12 @@ if os.path.exists(config_file):
 else:
     CernthonConfig = namedtuple('CernthonConfig', ['client_id', 'modules'])
     client_id = '%s-%f' % (sys.platform, time.time())
-    modules = dict(
-        remote_file=dict(
-            buffer_size=8192,
-            connection='tcpsock',
-            serialization=dict(
-                data='python_pickling',
-                results='python_pickling'
-            )
-        ),
-        basic_operations=dict(
-            buffer_size=8192,
-            connection='tcpsock',
-            serialization=dict(
-                data='python_pickling',
-                results='python_pickling'
-        )
-        )
-    )
-    cernthon_config = CernthonConfig(client_id, modules)
-    # raise AttributeError("config.py not found, the system can't be configured")
+    modules = ConfigParamters(default=dict(
+        buffer_size=8192,
+        connection='tcpsock',
+        serialization=dict(
+            data='python_pickling',
+            results='python_pickling')))
 
 
 def import_module(module_name, directory_service_hostname='127.0.0.1', port=9000):
