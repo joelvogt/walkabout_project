@@ -9,7 +9,6 @@ import os
 import sys
 import time
 
-
 from walkabout.serialization import SerializationEndpoint
 
 

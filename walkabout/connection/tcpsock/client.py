@@ -6,13 +6,19 @@ from threading import Thread
 from Queue import Queue, Empty
 from collections import deque
 import time
+import gc
 
 from walkabout.connection.tcpsock import HEADER_DELIMITER, MESSAGE_HEADER_END, MESSAGE_HEADER, get_header_from_message
 from walkabout.connection import CLOSE_CONNECTION, FLUSH_BUFFER_REQUEST
 
 
 def input_data_handler(func, args_queue, tcp_socket, endpoint):
+    args_queue_get = args_queue.get
     buffer = deque()
+    buffer_popleft = buffer.popleft
+    buffer_append = buffer.append
+    endpoint_to_send = endpoint.to_send
+    tcp_socket_send = tcp_socket.send
     buffer_size = 0
     buffer_limit = 10
     is_alive = True
@@ -20,28 +26,31 @@ def input_data_handler(func, args_queue, tcp_socket, endpoint):
     while is_alive:
         try:
 
-            args = args_queue.get(timeout=3)
-            buffer.append(args)
+            args = args_queue_get(timeout=3)
+            buffer_append(args)
             buffer_size += 1
         except Empty:
             buffer_limit = buffer_size
             is_alive = False
 
         if buffer_size == buffer_limit:
-            to_serial_args = ((map(lambda x: buffer.popleft(), range(buffer_size)),), {})
+            to_serial_args = ((map(lambda x: buffer_popleft(), range(buffer_size)),), {})
             buffer_size = 0
-            func(tcp_socket, endpoint.to_send(to_serial_args))
-    tcp_socket.send(FLUSH_BUFFER_REQUEST)
+            func(tcp_socket, endpoint_to_send(to_serial_args))
+    tcp_socket_send(FLUSH_BUFFER_REQUEST)
 
 
 def handle_return_value(buffer_size, endpoint, tcp_client_socket, is_buffering):
+    gc.disable()
     next_frame = None
     return_values = deque()
     receiving = True
-
+    tcp_client_socket_recv = tcp_client_socket.recv
+    return_values_append = return_values.append
+    endpoint_to_receive = endpoint.to_receive
     while True:
         if receiving:
-            message = tcp_client_socket.recv(buffer_size)
+            message = tcp_client_socket_recv(buffer_size)
         else:
             message = next_frame
             next_frame = None
@@ -65,13 +74,14 @@ def handle_return_value(buffer_size, endpoint, tcp_client_socket, is_buffering):
 
             next_frame = frame
         if len(frame) == total_data_size:
-            return_values.append(endpoint.to_receive(frame))
+            return_values_append(endpoint_to_receive(frame))
         if not next_frame and not is_buffering:
             break
     return receiving, return_values
 
 
 def return_value_listener(_return_handler, _tcp_socket, return_values, is_buffering):
+
     while True:
         receiving, remote_return_value = _return_handler(_tcp_socket, is_buffering)
         if not remote_return_value:
@@ -85,6 +95,7 @@ def return_value_listener(_return_handler, _tcp_socket, return_values, is_buffer
                 return_values.extend(i)
         if not receiving:
             break
+    gc.enable()
 
 
 class UnbufferedMethod(object):
@@ -96,10 +107,11 @@ class UnbufferedMethod(object):
         self._is_alive = True
 
     def __call__(self, *args, **kwargs):
+        gc.disable()
         self._func(self._tcp_socket, self._endpoint.to_send((args, kwargs)))
         self._is_alive = False
         _, return_values = self._return_handler(self._tcp_socket, False)
-
+        gc.enable()
         return return_values
 
     def is_alive(self):
