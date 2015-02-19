@@ -173,16 +173,10 @@ class Server(object):
 
     def __call__(self, networked_func, buffered):
         function_name = networked_func.__name__
+
         def buffered_function(func):
             def on_call(params):
-                p = multiprocessing.Pool(8)
-                results = p.map(func, params)
-                p.close()
-                p.join()
-
-                print results
-                return results
-                # return [func(*args, **kwargs) for args, kwargs in params]
+                return [func(*args, **kwargs) for args, kwargs in params]
 
             return on_call
 
