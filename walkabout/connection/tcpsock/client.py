@@ -6,7 +6,6 @@ from threading import Thread
 from Queue import Queue, Empty
 from collections import deque
 import time
-import gc
 
 from walkabout.connection.tcpsock import HEADER_DELIMITER, MESSAGE_HEADER_END, MESSAGE_HEADER, get_header_from_message
 from walkabout.connection import CLOSE_CONNECTION, FLUSH_BUFFER_REQUEST
@@ -41,7 +40,6 @@ def input_data_handler(func, args_queue, tcp_socket, endpoint):
 
 
 def handle_return_value(buffer_size, endpoint, tcp_client_socket, is_buffering):
-    gc.disable()
     next_frame = None
     return_values = deque()
     receiving = True
@@ -95,7 +93,6 @@ def return_value_listener(_return_handler, _tcp_socket, return_values, is_buffer
                 return_values.extend(i)
         if not receiving:
             break
-    gc.enable()
 
 
 class UnbufferedMethod(object):
@@ -107,11 +104,9 @@ class UnbufferedMethod(object):
         self._is_alive = True
 
     def __call__(self, *args, **kwargs):
-        gc.disable()
         self._func(self._tcp_socket, self._endpoint.to_send((args, kwargs)))
         self._is_alive = False
         _, return_values = self._return_handler(self._tcp_socket, False)
-        gc.enable()
         return return_values
 
     def is_alive(self):
