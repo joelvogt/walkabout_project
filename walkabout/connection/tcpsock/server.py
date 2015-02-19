@@ -176,9 +176,9 @@ class Server(object):
         def buffered_function(func):
             def on_call(params):
                 p = multiprocessing.Pool()
-                po = multiprocessing.map_async(func, params)
-                print po
-                return po.get()
+                po = multiprocessing.map(func, params)
+                r = po.get()
+                return r
                 # return [func(*args, **kwargs) for args, kwargs in params]
 
             return on_call
