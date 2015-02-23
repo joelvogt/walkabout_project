@@ -49,10 +49,10 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                 break
 
             if FLUSH_BUFFER_REQUEST == message[-3:]:
-                print('handle flush buffer')
+
                 event = FLUSH_BUFFER_REQUEST
                 state = STATE_FINISHING
-                print('message len {0}'.format(len(message)))
+
                 if len(message) > 3:
                     message = message[:-3]
                 else:
@@ -115,7 +115,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
         if return_value != -1:
             if isinstance(return_value, Exception):
                 is_used_by_client = False
-            print(return_value)
+
             serialized_content = endpoint.to_send(return_value)
             return_message = '%(header)s' \
                              '%(delimiter)s' \
@@ -137,8 +137,6 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
             return_value = -1
         if state == STATE_END_CALL:
             if event:
-                print(event)
-
                 tcp_client_socket.send(event)
                 event = None
                 state = STATE_RUNNING
@@ -177,7 +175,7 @@ class Server(object):
                       self._remote_functions,
                       self._endpoint))
             p.start()
-            print('running')
+
 
     def __call__(self, networked_func, buffered):
         function_name = networked_func.__name__
