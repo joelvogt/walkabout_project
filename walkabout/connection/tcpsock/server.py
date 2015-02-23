@@ -113,7 +113,6 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
         if return_value != -1:
             if isinstance(return_value, Exception):
                 is_used_by_client = False
-            print('return value {0}'.format(len(return_value)))
             serialized_content = endpoint.to_send(return_value)
             return_message = '%(header)s' \
                              '%(delimiter)s' \
