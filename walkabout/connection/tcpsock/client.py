@@ -19,13 +19,13 @@ def input_data_handler(func, args_queue, tcp_socket, endpoint):
     endpoint_to_send = endpoint.to_send
     tcp_socket_send = tcp_socket.send
     buffer_size = 0
-    buffer_limit = 10
+    buffer_limit = 50
     is_alive = True
 
     while is_alive:
         try:
 
-            args = args_queue_get(timeout=1)
+            args = args_queue_get(timeout=0.01)
             buffer_append(args)
             buffer_size += 1
         except Empty:
