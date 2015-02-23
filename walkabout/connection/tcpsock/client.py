@@ -80,20 +80,18 @@ def handle_return_value(buffer_size, endpoint, tcp_client_socket, is_buffering):
 
 
 def return_value_listener(_return_handler, _tcp_socket, return_values, is_buffering):
-
+    return_values_extend = return_values.extend
     while True:
         receiving, remote_return_value = _return_handler(_tcp_socket, is_buffering)
-        print(remote_return_value)
         if not remote_return_value:
             break
         if remote_return_value == -1:
             break
         if isinstance(remote_return_value, Exception):
             raise remote_return_value
-        if len(remote_return_value) > 5:
+        if len(remote_return_value) > 1:
             for i in remote_return_value:
-                print(i)
-                return_values.extend(i)
+                return_values_extend(i)
         if not receiving:
             break
 
