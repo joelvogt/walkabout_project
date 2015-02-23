@@ -32,6 +32,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
         while is_used_by_client:
             if state == STATE_RUNNING:
                 message = tcp_client_socket.recv(buffer_size)
+                print(message[-10:])
 
             elif state == STATE_FINISHING:
 
