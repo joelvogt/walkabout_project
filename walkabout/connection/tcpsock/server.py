@@ -13,6 +13,7 @@ STATE_RUNNING = 0
 STATE_FINISHING = 1
 STATE_END_CALL = 2
 
+
 def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint):
     input_buffer = None
     total_data_size = 0
@@ -88,7 +89,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
             input_buffer.extend(message)
 
             if total_data_size < input_buffer.size:
-                input_buffer._fd.seek(0)
+                input_buffer.fd.seek(0)
                 frame = None
                 return_value = OverflowError(
                     'Server side exception: \

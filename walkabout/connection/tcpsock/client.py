@@ -13,9 +13,9 @@ from walkabout.connection import CLOSE_CONNECTION, FLUSH_BUFFER_REQUEST
 
 def input_data_handler(func, args_queue, tcp_socket, endpoint):
     args_queue_get = args_queue.get
-    buffer = deque()
-    buffer_popleft = buffer.popleft
-    buffer_append = buffer.append
+    input_buffer = deque()
+    buffer_popleft = input_buffer.popleft
+    buffer_append = input_buffer.append
     endpoint_to_send = endpoint.to_send
     tcp_socket_send = tcp_socket.send
     buffer_size = 0
@@ -166,7 +166,6 @@ def remote_function(function_ref, tcp_client_socket, serialized_content):
                   delimiter=HEADER_DELIMITER,
                   header_end=MESSAGE_HEADER_END)
     tcp_client_socket.send(message)
-
 
 
 class Client(object):

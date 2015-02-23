@@ -33,6 +33,7 @@ class ModuleConfig(object):
 
     def server_factory(self, config):
         import importlib
+
         connection_module = importlib.import_module(
             ModuleConfig.get_python_object('connection', config['connection'], 'server'))
         receive_data_func = importlib.import_module(
