@@ -53,8 +53,10 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                 event = FLUSH_BUFFER_REQUEST
                 state = STATE_FINISHING
                 print('message len {0}'.format(len(message)))
-
-                continue
+                if len(message) > 3:
+                    message = message[:-3]
+                else:
+                    continue
             if not message:
                 is_used_by_client = False
                 return_value = -1

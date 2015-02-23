@@ -83,7 +83,7 @@ def return_value_listener(_return_handler, _tcp_socket, return_values, is_buffer
 
     while True:
         receiving, remote_return_value = _return_handler(_tcp_socket, is_buffering)
-        print('incomding')
+        print(remote_return_value)
         if not remote_return_value:
             break
         if remote_return_value == -1:
@@ -110,18 +110,10 @@ class UnbufferedMethod(object):
         self._func(self._tcp_socket, self._endpoint.to_send((args, kwargs)))
         self._is_alive = False
         _, return_values = self._return_handler(self._tcp_socket, False)
-        return return_values
+        return return_values[0]
 
     def is_alive(self):
         return self._is_alive
-
-
-# def unbuffered_method(func, tcp_socket, return_handler, endpoint):
-# def on_call(*args, **kwargs):
-#         func(tcp_socket, endpoint.to_send((args, kwargs)))
-#         return return_handler(tcp_socket)
-#
-#     return on_call
 
 
 class BufferedMethod(object):
