@@ -52,6 +52,8 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                 print('handle flush buffer')
                 event = FLUSH_BUFFER_REQUEST
                 state = STATE_FINISHING
+                if len(message) > 3:
+                    message = message[:-3]
                 continue
             if not message:
                 is_used_by_client = False
