@@ -50,7 +50,6 @@ def handle_return_value(buffer_size, endpoint, tcp_client_socket, is_buffering):
     while True:
         if receiving:
             message = tcp_client_socket_recv(buffer_size)
-            print(message[-10:])
         else:
             message = next_frame
             next_frame = None
@@ -59,7 +58,6 @@ def handle_return_value(buffer_size, endpoint, tcp_client_socket, is_buffering):
             message = ''.join([next_frame, message])
             next_frame = None
         if message[-3:] == FLUSH_BUFFER_REQUEST:
-            print('flush')
             receiving = False
         # if len(message) < 3:
         # continue
@@ -85,14 +83,16 @@ def return_value_listener(_return_handler, _tcp_socket, return_values, is_buffer
 
     while True:
         receiving, remote_return_value = _return_handler(_tcp_socket, is_buffering)
+        print('incomding')
         if not remote_return_value:
             break
         if remote_return_value == -1:
             break
         if isinstance(remote_return_value, Exception):
             raise remote_return_value
-        if len(remote_return_value) > 1:
+        if len(remote_return_value) > 5:
             for i in remote_return_value:
+                print(i)
                 return_values.extend(i)
         if not receiving:
             break
