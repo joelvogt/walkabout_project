@@ -53,13 +53,8 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                 event = FLUSH_BUFFER_REQUEST
                 state = STATE_FINISHING
                 print('message len {0}'.format(len(message)))
-                print('input buffer len {0}'.format(len(input_buffer.size)))
-                if len(message) > 3:
-                    message = message[:-3]
-                    # print('message len {0}'.format(len(message)))
-                else:
-                    print('continue')
-                    continue
+
+                continue
             if not message:
                 is_used_by_client = False
                 return_value = -1
@@ -118,6 +113,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
         if return_value != -1:
             if isinstance(return_value, Exception):
                 is_used_by_client = False
+            print('return value {0}'.format(len(return_value)))
             serialized_content = endpoint.to_send(return_value)
             return_message = '%(header)s' \
                              '%(delimiter)s' \
