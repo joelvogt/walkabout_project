@@ -49,6 +49,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                 break
 
             if FLUSH_BUFFER_REQUEST == message:
+                print('handle flush buffer')
                 event = FLUSH_BUFFER_REQUEST
                 state = STATE_FINISHING
                 continue
