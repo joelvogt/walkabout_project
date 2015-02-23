@@ -1,10 +1,9 @@
 import sys
-import time
 
 from walkabout.helpers.configlib import ConfigParamters
 
 
-client_id = '%s-%f' % (sys.platform, time.time())
+client_id = '%s-%d' % (sys.platform, sys.hexversion)
 
 modules = ConfigParamters(default=dict(
     buffer_size=8192,

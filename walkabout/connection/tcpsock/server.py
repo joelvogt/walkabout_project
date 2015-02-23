@@ -170,6 +170,7 @@ class Server(object):
                       self._remote_functions,
                       self._endpoint))
             p.start()
+            print('running')
 
     def __call__(self, networked_func, buffered):
         function_name = networked_func.__name__

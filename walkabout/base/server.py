@@ -1,15 +1,21 @@
 # -*- coding:utf-8 -*-
+import time
+
 from walkabout.helpers.configlib import ModuleConfig, ConfigParamters
+
 
 __author__ = u'Joël Vogt'
 import imp
 from SimpleXMLRPCServer import SimpleXMLRPCServer
 import socket
 from multiprocessing import Process
+from threading import Thread
 import os
 
-class ModulesDirectory(object):
+
+class ModulesDirectory(Thread):
     def __init__(self, hostname, port, modules, modules_dir):
+        Thread.__init__(self)
         self._do_run = True
         self._server = SimpleXMLRPCServer((hostname, port))  # , allow_none=True)
         try:
@@ -40,6 +46,7 @@ class ModulesDirectory(object):
         if client_id not in self._modules_processes:
             self._modules_processes[client_id] = {}
 
+
         if module_name not in self._modules:
             raise ImportError('Cannot find %s' % module_name)
         if module_name not in self._modules_processes[client_id]:
@@ -56,8 +63,18 @@ class ModulesDirectory(object):
         return self._connection_config.client_configuration(
             self._modules_processes[client_id][module_name]['module_instance'])
 
+    def run(self):
+        local_modules_processes = self._modules_processes
+        while True:
+            for client in local_modules_processes:
+                client_modules = local_modules_processes[client]
+                for module in client_modules:
+                    pass
+            time.sleep(1)
+
     def on_start(self):
         try:
+            # self.start()
             self._server.serve_forever()
         except KeyboardInterrupt:
             self._do_run = False

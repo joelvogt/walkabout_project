@@ -7,7 +7,6 @@ import imp
 from collections import namedtuple
 import os
 import sys
-import time
 
 from walkabout.serialization import SerializationEndpoint
 
@@ -18,7 +17,7 @@ if os.path.exists(config_file):
     cernthon_config = imp.load_source('config', config_file)
 else:
     CernthonConfig = namedtuple('CernthonConfig', ['client_id', 'modules'])
-    client_id = '%s-%f' % (sys.platform, time.time())
+    client_id = '%s-%d' % (sys.platform, sys.hexversion)
     modules = ConfigParamters(default=dict(
         buffer_size=8192,
         connection='tcpsock',
