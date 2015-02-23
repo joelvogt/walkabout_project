@@ -52,9 +52,11 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                 print('handle flush buffer')
                 event = FLUSH_BUFFER_REQUEST
                 state = STATE_FINISHING
+                print('message len {0}'.format(len(message)))
+                print('next len {0}'.format(len(next_frame)))
                 if len(message) > 3:
                     message = message[:-3]
-                    print('message len {0}'.format(len(message)))
+                    # print('message len {0}'.format(len(message)))
                 else:
                     print('continue')
                     continue
