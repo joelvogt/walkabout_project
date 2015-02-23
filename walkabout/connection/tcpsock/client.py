@@ -25,10 +25,11 @@ def input_data_handler(func, args_queue, tcp_socket, endpoint):
     while is_alive:
         try:
 
-            args = args_queue_get(timeout=3)
+            args = args_queue_get(timeout=1)
             buffer_append(args)
             buffer_size += 1
         except Empty:
+            print('exiting')
             buffer_limit = buffer_size
             is_alive = False
 
@@ -49,6 +50,7 @@ def handle_return_value(buffer_size, endpoint, tcp_client_socket, is_buffering):
     while True:
         if receiving:
             message = tcp_client_socket_recv(buffer_size)
+            print(message[-10:])
         else:
             message = next_frame
             next_frame = None
@@ -57,6 +59,7 @@ def handle_return_value(buffer_size, endpoint, tcp_client_socket, is_buffering):
             message = ''.join([next_frame, message])
             next_frame = None
         if message[-3:] == FLUSH_BUFFER_REQUEST:
+            print('flush')
             receiving = False
         # if len(message) < 3:
         # continue
@@ -140,6 +143,7 @@ class BufferedMethod(object):
         self._return_handler.start()
 
     def is_alive(self):
+        print('is alive')
         return self._return_handler.isAlive() or self._network_func.isAlive()
 
     def __iter__(self):
@@ -150,6 +154,7 @@ class BufferedMethod(object):
         self._args_queue.put((args, kwargs))
 
     def __del__(self):
+        print('calling delete')
         self._network_func.join()
         self._return_handler.join()
 

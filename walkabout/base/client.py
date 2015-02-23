@@ -19,7 +19,7 @@ else:
     CernthonConfig = namedtuple('CernthonConfig', ['client_id', 'modules'])
     client_id = '%s-%d' % (sys.platform, sys.hexversion)
     modules = ConfigParamters(default=dict(
-        buffer_size=8192,
+        buffer_size=16384,
         connection='tcpsock',
         serialization=dict(
             data='python_pickling',
