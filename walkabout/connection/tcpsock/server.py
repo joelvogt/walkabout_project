@@ -31,7 +31,6 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
 
     # Locally stored references of commonly used functions and data objects
     f_input_buffer_extend = None
-    d_input_buffer_size = None
 
     f_str_join = ''.join
 
@@ -89,36 +88,35 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                     remote_function = remote_functions[function_ref]
                     input_buffer = InputStreamBuffer(buffer_size=buffer_size)
                     f_input_buffer_extend = input_buffer.extend
-                    d_input_buffer_size = input_buffer.size
+
                 except IndexError:
                     return_value = AttributeError("Server side exception: \
                     Remote module doesn't have the function_ref you tried to call")
                     frame = None
                     break
 
-            diff = total_data_size - (d_input_buffer_size + len(message))
+            diff = total_data_size - (input_buffer.size + len(message))
             if diff < 0:
                 next_frame = message[diff:]
                 message = message[:diff]
             f_input_buffer_extend(message)
 
-            if total_data_size < d_input_buffer_size:
+            if total_data_size < input_buffer.size:
                 frame = None
                 return_value = OverflowError(
                     'Server side exception: \
                     The size {0} is longer than \
                     the expected message size {1}'.format(
-                        d_input_buffer_size,
+                        input_buffer.size,
                         total_data_size))
 
-            elif total_data_size == d_input_buffer_size:
-                frame = input_buffer[0:d_input_buffer_size]
+            elif total_data_size == input_buffer.size:
+                frame = input_buffer[0:input_buffer.size]
             else:
                 continue
             break
         input_buffer = None
         f_input_buffer_extend = None
-        d_input_buffer_size = None
         if frame:
             args, kwargs = f_endpoint_to_receive(frame)
             frame = None
