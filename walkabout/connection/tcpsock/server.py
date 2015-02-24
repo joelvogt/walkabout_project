@@ -20,17 +20,19 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
     remote_function = None
     """ return_value == -1 if no function_ref was called.
     None can be returned by functions without explicit return value"""
-    return_value = -1
-    frame = None
     function_ref = None
-    is_used_by_client = True
+    frame = None
     next_frame = None
-    input_buffer = None
     message = None
     event = None
     state = STATE_RUNNING
+    return_value = -1
+    is_used_by_client = True
 
     # Locally stored references of commonly used functions and data objects
+    f_input_buffer_extend = None
+    d_input_buffer_size = None
+
     f_str_join = ''.join
 
     f_tcp_socket_recv = tcp_client_socket.recv
@@ -115,6 +117,8 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                 continue
             break
         input_buffer = None
+        f_input_buffer_extend = None
+        d_input_buffer_size = None
         if frame:
             args, kwargs = f_endpoint_to_receive(frame)
             frame = None

@@ -41,6 +41,14 @@ def input_data_handler(func, args_queue, tcp_socket, endpoint):
 
 
 def handle_return_value(buffer_size, endpoint, tcp_client_socket, is_buffering):
+    f_str_join = ''.join
+
+    # f_tcp_socket_recv = tcp_client_socket.recv
+    # f_tcp_client_socket_send = tcp_client_socket.send
+    #
+    # f_endpoint_to_send = endpoint.to_send
+    # f_endpoint_to_receive = endpoint.to_receive
+    frame = None
     next_frame = None
     return_values = deque()
     receiving = True
@@ -55,7 +63,7 @@ def handle_return_value(buffer_size, endpoint, tcp_client_socket, is_buffering):
             next_frame = None
 
         if next_frame:
-            message = ''.join([next_frame, message])
+            message = f_str_join([next_frame, message])
             next_frame = None
         if message[-3:] == FLUSH_BUFFER_REQUEST:
             receiving = False
