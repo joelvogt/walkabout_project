@@ -12,7 +12,7 @@ from walkabout.connection import CLOSE_CONNECTION, FLUSH_BUFFER_REQUEST
 
 
 def input_data_handler(func, args_queue, tcp_socket, endpoint):
-    args_queue_get = args_queue.get
+    f_args_queue_get = args_queue.get
     input_buffer = deque()
     f_buffer_popleft = input_buffer.popleft
     f_buffer_append = input_buffer.append
@@ -25,11 +25,10 @@ def input_data_handler(func, args_queue, tcp_socket, endpoint):
     while is_alive:
         try:
 
-            args = args_queue_get(timeout=0.01)
+            args = f_args_queue_get(timeout=0.01)
             f_buffer_append(args)
             buffer_size += 1
         except Empty:
-            print('exiting')
             buffer_limit = buffer_size
             is_alive = False
 
@@ -152,7 +151,6 @@ class BufferedMethod(object):
         self._args_queue.put((args, kwargs))
 
     def __del__(self):
-        print('calling delete')
         self._network_func.join()
         self._return_handler.join()
 
