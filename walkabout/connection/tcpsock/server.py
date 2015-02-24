@@ -26,13 +26,24 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
     is_used_by_client = True
     next_frame = None
 
+    f_str_join = ''.join
+
+    f_tcp_socket_recv = tcp_client_socket.recv
+    f_tcp_client_socket_send = tcp_client_socket.send
+
+    f_endpoint_to_send = endpoint.to_send
+    f_endpoint_to_receive = endpoint.to_receive
+
+    f_input_buffer_extend = input_buffer.extend
+    d_input_buffer_size = input_buffer.size
+
     message = None
     event = None
     state = STATE_RUNNING
     while is_used_by_client:
         while is_used_by_client:
             if state == STATE_RUNNING:
-                message = tcp_client_socket.recv(buffer_size)
+                message = f_tcp_socket_recv(buffer_size)
 
             elif state == STATE_FINISHING:
 
@@ -65,7 +76,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
 
             if not remote_function:
                 if next_frame:
-                    message = ''.join([next_frame, message])
+                    message = f_str_join([next_frame, message])
                     next_frame = None
                 if message[:3] != MESSAGE_HEADER:
                     return_value = ReferenceError(
@@ -76,36 +87,37 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                     function_ref, total_data_size, message = get_header_from_message(message)
                     remote_function = remote_functions[function_ref]
                     input_buffer = InputStreamBuffer(buffer_size=buffer_size)
+                    f_input_buffer_extend = input_buffer.extend
+                    d_input_buffer_size = input_buffer.size
                 except IndexError:
                     return_value = AttributeError("Server side exception: \
                     Remote module doesn't have the function_ref you tried to call")
                     frame = None
                     break
 
-            diff = total_data_size - (input_buffer.size + len(message))
+            diff = total_data_size - (d_input_buffer_size + len(message))
             if diff < 0:
                 next_frame = message[diff:]
                 message = message[:diff]
-            input_buffer.extend(message)
+            f_input_buffer_extend(message)
 
-            if total_data_size < input_buffer.size:
-                input_buffer.fd.seek(0)
+            if total_data_size < d_input_buffer_size:
                 frame = None
                 return_value = OverflowError(
                     'Server side exception: \
                     The size {0} is longer than \
                     the expected message size {1}'.format(
-                        input_buffer.size,
+                        d_input_buffer_size,
                         total_data_size))
 
-            elif total_data_size == input_buffer.size:
-                frame = input_buffer[0:input_buffer.size]
+            elif total_data_size == d_input_buffer_size:
+                frame = input_buffer[0:d_input_buffer_size]
             else:
                 continue
             break
         input_buffer = None
         if frame:
-            args, kwargs = endpoint.to_receive(frame)
+            args, kwargs = f_endpoint_to_receive(frame)
             frame = None
             try:
                 return_value = remote_function(*args, **kwargs)
@@ -117,7 +129,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
             if isinstance(return_value, Exception):
                 is_used_by_client = False
 
-            serialized_content = endpoint.to_send(return_value)
+            serialized_content = f_endpoint_to_send(return_value)
             return_message = '%(header)s' \
                              '%(delimiter)s' \
                              '%(function_ref)s' \
@@ -133,15 +145,15 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                                  message=serialized_content,
                                  delimiter=HEADER_DELIMITER,
                                  header_end=MESSAGE_HEADER_END)
-            tcp_client_socket.send(return_message)
+            f_tcp_client_socket_send(return_message)
             remote_function = None
             return_value = -1
         if state == STATE_END_CALL:
             if event:
-                tcp_client_socket.send(event)
+                f_tcp_client_socket_send(event)
                 event = None
                 state = STATE_RUNNING
-    tcp_client_socket.send(CLOSE_CONNECTION)
+    f_tcp_client_socket_send(CLOSE_CONNECTION)
     tcp_client_socket.close()
 
 
