@@ -35,7 +35,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
     f_str_join = ''.join
 
     f_tcp_socket_recv = tcp_client_socket.recv
-    f_tcp_client_socket_send = tcp_client_socket.send
+    f_tcp_socket_send = tcp_client_socket.send
 
     f_endpoint_to_send = endpoint.to_send
     f_endpoint_to_receive = endpoint.to_receive
@@ -146,15 +146,15 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
                                  message=serialized_content,
                                  delimiter=HEADER_DELIMITER,
                                  header_end=MESSAGE_HEADER_END)
-            f_tcp_client_socket_send(return_message)
+            f_tcp_socket_send(return_message)
             remote_function = None
             return_value = -1
         if state == STATE_END_CALL:
             if event:
-                f_tcp_client_socket_send(event)
+                f_tcp_socket_send(event)
                 event = None
                 state = STATE_RUNNING
-    f_tcp_client_socket_send(CLOSE_CONNECTION)
+    f_tcp_socket_send(CLOSE_CONNECTION)
     tcp_client_socket.close()
 
 

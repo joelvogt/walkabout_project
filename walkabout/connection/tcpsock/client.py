@@ -14,10 +14,10 @@ from walkabout.connection import CLOSE_CONNECTION, FLUSH_BUFFER_REQUEST
 def input_data_handler(func, args_queue, tcp_socket, endpoint):
     args_queue_get = args_queue.get
     input_buffer = deque()
-    buffer_popleft = input_buffer.popleft
-    buffer_append = input_buffer.append
-    endpoint_to_send = endpoint.to_send
-    tcp_socket_send = tcp_socket.send
+    f_buffer_popleft = input_buffer.popleft
+    f_buffer_append = input_buffer.append
+    f_endpoint_to_send = endpoint.to_send
+    f_tcp_socket_send = tcp_socket.send
     buffer_size = 0
     buffer_limit = 50
     is_alive = True
@@ -26,7 +26,7 @@ def input_data_handler(func, args_queue, tcp_socket, endpoint):
         try:
 
             args = args_queue_get(timeout=0.01)
-            buffer_append(args)
+            f_buffer_append(args)
             buffer_size += 1
         except Empty:
             print('exiting')
@@ -34,10 +34,10 @@ def input_data_handler(func, args_queue, tcp_socket, endpoint):
             is_alive = False
 
         if buffer_size == buffer_limit:
-            to_serial_args = ((map(lambda x: buffer_popleft(), range(buffer_size)),), {})
+            to_serial_args = ((map(lambda x: f_buffer_popleft(), range(buffer_size)),), {})
             buffer_size = 0
-            func(tcp_socket, endpoint_to_send(to_serial_args))
-    tcp_socket_send(FLUSH_BUFFER_REQUEST)
+            func(tcp_socket, f_endpoint_to_send(to_serial_args))
+    f_tcp_socket_send(FLUSH_BUFFER_REQUEST)
 
 
 def handle_return_value(buffer_size, endpoint, tcp_client_socket, is_buffering):
@@ -52,12 +52,12 @@ def handle_return_value(buffer_size, endpoint, tcp_client_socket, is_buffering):
     next_frame = None
     return_values = deque()
     receiving = True
-    tcp_client_socket_recv = tcp_client_socket.recv
-    return_values_append = return_values.append
-    endpoint_to_receive = endpoint.to_receive
+    f_tcp_socket_recv = tcp_client_socket.recv
+    f_return_values_append = return_values.append
+    f_endpoint_to_receive = endpoint.to_receive
     while True:
         if receiving:
-            message = tcp_client_socket_recv(buffer_size)
+            message = f_tcp_socket_recv(buffer_size)
         else:
             message = next_frame
             next_frame = None
@@ -81,7 +81,7 @@ def handle_return_value(buffer_size, endpoint, tcp_client_socket, is_buffering):
 
             next_frame = frame
         if len(frame) == total_data_size:
-            return_values_append(endpoint_to_receive(frame))
+            f_return_values_append(f_endpoint_to_receive(frame))
         if not next_frame and not is_buffering:
             break
     return receiving, return_values
