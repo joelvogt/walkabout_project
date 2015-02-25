@@ -81,6 +81,7 @@ def handle_return_value(buffer_size, endpoint, tcp_client_socket, is_buffering):
             f_return_values_append(f_endpoint_to_receive(frame))
         if not next_frame and not is_buffering:
             break
+
     return receiving, return_values
 
 
