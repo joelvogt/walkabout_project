@@ -12,20 +12,22 @@ from walkabout.connection import CLOSE_CONNECTION, FLUSH_BUFFER_REQUEST
 
 
 def input_data_handler(func, args_queue, tcp_socket, endpoint):
-    f_args_queue_get = args_queue.get
     input_buffer = deque()
-    f_buffer_popleft = input_buffer.popleft
-    f_buffer_append = input_buffer.append
-    f_endpoint_to_send = endpoint.to_send
-    f_tcp_socket_send = tcp_socket.send
     buffer_size = 0
     buffer_limit = 50
     is_alive = True
 
+    f_args_queue_get = args_queue.get
+    f_buffer_popleft = input_buffer.popleft
+    f_buffer_append = input_buffer.append
+    f_endpoint_to_send = endpoint.to_send
+    f_tcp_socket_send = tcp_socket.send
+
+
     while is_alive:
         try:
 
-            args = f_args_queue_get(timeout=0.01)
+            args = f_args_queue_get(timeout=0.1)
             f_buffer_append(args)
             buffer_size += 1
         except Empty:
@@ -200,7 +202,7 @@ class Client(object):
 
             """wait until the buffered method has transmitted all the data and collected the return values"""
             while self._last_method is not None and self._last_method.is_alive():
-                time.sleep(0.5)
+                time.sleep(0.1)
             del self._last_method
             if name in self._buffered_methods:
                 self._last_method = BufferedMethod(func, self._buffer_size, self._endpoint, return_handler,
