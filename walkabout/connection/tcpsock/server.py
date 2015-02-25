@@ -34,7 +34,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
 
     f_str_join = ''.join
 
-    f_tcp_socket_recv = tcp_client_socket.recv
+    f_tcp_socket_receive = tcp_client_socket.recv
     f_tcp_socket_send = tcp_client_socket.send
 
     f_endpoint_to_send = endpoint.to_send
@@ -43,7 +43,7 @@ def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint
     while is_used_by_client:
         while is_used_by_client:
             if state == STATE_RUNNING:
-                message = f_tcp_socket_recv(buffer_size)
+                message = f_tcp_socket_receive(buffer_size)
 
             elif state == STATE_FINISHING:
 
@@ -189,7 +189,6 @@ class Server(object):
                       self._remote_functions,
                       self._endpoint))
             p.start()
-
 
     def __call__(self, networked_func, buffered):
         function_name = networked_func.__name__

@@ -23,7 +23,6 @@ def input_data_handler(func, args_queue, tcp_socket, endpoint):
     f_endpoint_to_send = endpoint.to_send
     f_tcp_socket_send = tcp_socket.send
 
-
     while is_alive:
         try:
 
@@ -44,21 +43,16 @@ def input_data_handler(func, args_queue, tcp_socket, endpoint):
 def handle_return_value(buffer_size, endpoint, tcp_client_socket, is_buffering):
     f_str_join = ''.join
 
-    # f_tcp_socket_recv = tcp_client_socket.recv
-    # f_tcp_client_socket_send = tcp_client_socket.send
-    #
-    # f_endpoint_to_send = endpoint.to_send
-    # f_endpoint_to_receive = endpoint.to_receive
     frame = None
     next_frame = None
     return_values = deque()
     receiving = True
-    f_tcp_socket_recv = tcp_client_socket.recv
+    f_tcp_socket_receive = tcp_client_socket.recv
     f_return_values_append = return_values.append
     f_endpoint_to_receive = endpoint.to_receive
     while True:
         if receiving:
-            message = f_tcp_socket_recv(buffer_size)
+            message = f_tcp_socket_receive(buffer_size)
         else:
             message = next_frame
             next_frame = None

@@ -6,7 +6,7 @@ from UserDict import UserDict
 from walkabout.serialization import SerializationEndpoint
 
 
-class ConfigParamters(UserDict):
+class ConfigParameters(UserDict):
     def __init__(self, *args, **kwargs):
         if 'data' in kwargs:
             self.data = kwargs['data']
