@@ -20,7 +20,7 @@ else:
     client_id = '%s-%d' % (sys.platform, sys.hexversion)
     modules = ConfigParameters(default=dict(
         buffer_size=16384,
-        connection='tcpsock',
+        connection='tcp_socket',
         serialization=dict(
             data='python_pickling',
             results='python_pickling')))

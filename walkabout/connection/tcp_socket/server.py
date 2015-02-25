@@ -4,7 +4,8 @@ import socket
 import multiprocessing
 
 from walkabout.connection import CLOSE_CONNECTION, FLUSH_BUFFER_REQUEST
-from walkabout.connection.tcpsock import MESSAGE_HEADER, HEADER_DELIMITER, MESSAGE_HEADER_END, get_header_from_message
+from walkabout.connection.tcp_socket import MESSAGE_HEADER, HEADER_DELIMITER, MESSAGE_HEADER_END, \
+    get_header_from_message
 from walkabout.helpers.datalib import InputStreamBuffer
 
 

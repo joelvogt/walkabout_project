@@ -7,7 +7,8 @@ from Queue import Queue, Empty
 from collections import deque
 import time
 
-from walkabout.connection.tcpsock import HEADER_DELIMITER, MESSAGE_HEADER_END, MESSAGE_HEADER, get_header_from_message
+from walkabout.connection.tcp_socket import HEADER_DELIMITER, MESSAGE_HEADER_END, MESSAGE_HEADER, \
+    get_header_from_message
 from walkabout.connection import CLOSE_CONNECTION, FLUSH_BUFFER_REQUEST
 
 
@@ -41,15 +42,16 @@ def input_data_handler(func, args_queue, tcp_socket, endpoint):
 
 
 def handle_return_value(buffer_size, endpoint, tcp_client_socket, is_buffering):
-    f_str_join = ''.join
-
     frame = None
     next_frame = None
     return_values = deque()
     receiving = True
+
+    f_str_join = ''.join
     f_tcp_socket_receive = tcp_client_socket.recv
     f_return_values_append = return_values.append
     f_endpoint_to_receive = endpoint.to_receive
+
     while True:
         if receiving:
             message = f_tcp_socket_receive(buffer_size)
@@ -60,21 +62,21 @@ def handle_return_value(buffer_size, endpoint, tcp_client_socket, is_buffering):
         if next_frame:
             message = f_str_join([next_frame, message])
             next_frame = None
+
         if message[-3:] == FLUSH_BUFFER_REQUEST:
             receiving = False
-        # if len(message) < 3:
-        # continue
+
         if message[:3] == MESSAGE_HEADER:
             function_ref, total_data_size, frame = get_header_from_message(message)
         elif message == FLUSH_BUFFER_REQUEST:
-
             break
+
         if len(frame) > total_data_size:
             next_frame = frame[total_data_size:]
             frame = frame[:total_data_size]
         elif len(frame) < total_data_size:
-
             next_frame = frame
+
         if len(frame) == total_data_size:
             f_return_values_append(f_endpoint_to_receive(frame))
         if not next_frame and not is_buffering:
@@ -84,17 +86,22 @@ def handle_return_value(buffer_size, endpoint, tcp_client_socket, is_buffering):
 
 def return_value_listener(_return_handler, _tcp_socket, return_values, is_buffering):
     return_values_extend = return_values.extend
+
     while True:
         receiving, remote_return_value = _return_handler(_tcp_socket, is_buffering)
         if not remote_return_value:
             break
+
         if remote_return_value == -1:
             break
+
         if isinstance(remote_return_value, Exception):
             raise remote_return_value
+
         if len(remote_return_value) > 1:
             for i in remote_return_value:
                 return_values_extend(i)
+
         if not receiving:
             break
 
@@ -127,7 +134,8 @@ class BufferedMethod(object):
         self._tcp_socket = tcp_socket
         self._network_func = Thread(target=input_data_handler,
                                     args=(func,
-                                          self._args_queue, tcp_socket, endpoint))
+                                          self._args_queue,
+                                          tcp_socket, endpoint))
 
         self._network_func.start()
         self.return_values = deque()
@@ -136,7 +144,6 @@ class BufferedMethod(object):
         self._return_handler.start()
 
     def is_alive(self):
-        print('is alive')
         return self._return_handler.isAlive() or self._network_func.isAlive()
 
     def __iter__(self):
@@ -190,19 +197,20 @@ class Client(object):
             self._last_method_name = name
             func = functools.partial(remote_function,
                                      name)
-            return_handler = functools.partial(handle_return_value,
-                                               self._buffer_size,
-                                               self._endpoint)
+            return_handler = functools.partial(handle_return_value, self._buffer_size, self._endpoint)
 
             """wait until the buffered method has transmitted all the data and collected the return values"""
             while self._last_method is not None and self._last_method.is_alive():
                 time.sleep(0.1)
             del self._last_method
+
             if name in self._buffered_methods:
-                self._last_method = BufferedMethod(func, self._buffer_size, self._endpoint, return_handler,
+                self._last_method = BufferedMethod(func,
+                                                   self._buffer_size,
+                                                   self._endpoint,
+                                                   return_handler,
                                                    self._tcp_socket)
             else:
-
                 self._last_method = UnbufferedMethod(func, self._tcp_socket, return_handler, self._endpoint)
 
         return self._last_method

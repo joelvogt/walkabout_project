@@ -7,7 +7,7 @@ client_id = '%s-%d' % (sys.platform, sys.hexversion)
 
 modules = ConfigParameters(default=dict(
     buffer_size=8192,
-    connection='tcpsock',
+    connection='tcp_socket',
     serialization=dict(
         data='python_pickling',
         results='python_pickling')))
