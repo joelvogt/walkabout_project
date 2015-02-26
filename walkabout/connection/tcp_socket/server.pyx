@@ -10,16 +10,16 @@ from walkabout.helpers.datalib import InputStreamBuffer
 
 
 
+
 # from pathos.multiprocessing import ProcessingPool as Pool
 # from pathos.helpers import cpu_count
 
-TIMEOUT = 10
-STATE_RUNNING = 0
-STATE_FINISHING = 1
-STATE_END_CALL = 2
+cdef int TIMEOUT = 10
+cdef int STATE_RUNNING = 0
+cdef int STATE_FINISHING = 1
+cdef int STATE_END_CALL = 2
 
-
-def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint):
+cdef _function_process(tcp_client_socket, int buffer_size, dict remote_functions, endpoint):
     input_buffer = None
     cdef int total_data_size = 0
     remote_function = None
