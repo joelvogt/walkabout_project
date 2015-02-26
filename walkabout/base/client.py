@@ -19,7 +19,7 @@ else:
     WalkaboutConfig = namedtuple('WalkaboutConfig', ['client_id', 'modules'])
     client_id = '%s-%d' % (sys.platform, sys.hexversion)
     modules = ConfigParameters(default=dict(
-        buffer_size=16384,
+        buffer_size=4096,
         connection='tcp_socket',
         serialization=dict(
             data='python_pickling',
