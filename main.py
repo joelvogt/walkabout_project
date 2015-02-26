@@ -1,3 +1,7 @@
+import pyximport;
+
+pyximport.install()
+
 import ConfigParser
 
 from walkabout.helpers.datalib import string_to_int
