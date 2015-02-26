@@ -12,6 +12,7 @@ from walkabout.helpers.datalib import InputStreamBuffer
 
 
 
+
 # from pathos.multiprocessing import ProcessingPool as Pool
 # from pathos.helpers import cpu_count
 from multiprocessing import Pool, cpu_count
@@ -201,7 +202,7 @@ class Server(object):
         function_name = networked_func.__name__
 
         def buffered_function(func):
-            if func.func_code.co_argcount == 1:
+            if func.func_code.co_argcount == 1 and cpu_count() > 1:
                 def on_call(params):
                     single_arguments = map(lambda x: x[0][0], params)
                     pool = Pool(processes=cpu_count())
