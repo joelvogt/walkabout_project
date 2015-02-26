@@ -193,12 +193,11 @@ class Server(object):
 
     def __call__(self, networked_func, buffered):
         function_name = networked_func.__name__
-
+        pool = Pool(processes=cpu_count())
         def buffered_function(func):
-            def on_call(params):
-                # pool = Pool(processes=cpu_count())
-                # return pool.map(lambda x: func(*x[0], **x[1]), params)
-                return [func(*args, **kwargs) for args, kwargs in params]
+
+            return pool.map(lambda x: func(*x[0], **x[1]), params)
+            # return [func(*args, **kwargs) for args, kwargs in params]
 
             return on_call
 
