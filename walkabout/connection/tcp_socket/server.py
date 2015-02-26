@@ -8,6 +8,8 @@ from walkabout.connection.tcp_socket import MESSAGE_HEADER, HEADER_DELIMITER, ME
     get_header_from_message
 from walkabout.helpers.datalib import InputStreamBuffer
 
+# from pathos.multiprocessing import ProcessingPool as Pool
+# from pathos.helpers import cpu_count
 
 TIMEOUT = 10
 STATE_RUNNING = 0
@@ -193,11 +195,12 @@ class Server(object):
 
     def __call__(self, networked_func, buffered):
         function_name = networked_func.__name__
-        pool = Pool(processes=cpu_count())
-        def buffered_function(func):
 
-            return pool.map(lambda x: func(*x[0], **x[1]), params)
-            # return [func(*args, **kwargs) for args, kwargs in params]
+        def buffered_function(func):
+            def on_call(params):
+                # pool = Pool(processes=cpu_count())
+                # return pool.map(lambda x: func(*x[0], **x[1]), params)
+                return [func(*args, **kwargs) for args, kwargs in params]
 
             return on_call
 
