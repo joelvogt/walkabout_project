@@ -9,6 +9,7 @@ from walkabout.connection.tcp_socket import MESSAGE_HEADER, HEADER_DELIMITER, ME
 from walkabout.helpers.datalib import InputStreamBuffer
 
 
+
 # from pathos.multiprocessing import ProcessingPool as Pool
 # from pathos.helpers import cpu_count
 
@@ -20,7 +21,7 @@ STATE_END_CALL = 2
 
 def _function_process(tcp_client_socket, buffer_size, remote_functions, endpoint):
     input_buffer = None
-    total_data_size = 0
+    cdef int total_data_size = 0
     remote_function = None
     """ return_value == -1 if no function_ref was called.
     None can be returned by functions without explicit return value"""
