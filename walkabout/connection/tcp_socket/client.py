@@ -15,7 +15,7 @@ from walkabout.connection import CLOSE_CONNECTION, FLUSH_BUFFER_REQUEST
 def input_data_handler(func, args_queue, tcp_socket, endpoint):
     input_buffer = deque()
     buffer_size = 0
-    buffer_limit = 50
+    buffer_limit = 10
     is_alive = True
 
     f_args_queue_get = args_queue.get
