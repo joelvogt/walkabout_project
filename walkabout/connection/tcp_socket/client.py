@@ -27,7 +27,7 @@ def input_data_handler(func, args_queue, tcp_socket, endpoint):
     while is_alive:
         try:
 
-            args = f_args_queue_get(timeout=0.1)
+            args = f_args_queue_get(timeout=0.01)
             f_buffer_append(args)
             buffer_size += 1
         except Empty:
