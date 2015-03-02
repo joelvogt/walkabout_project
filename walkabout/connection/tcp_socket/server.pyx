@@ -1,12 +1,13 @@
 # -*- coding:utf-8 -*-
 __author__ = u'Joël Vogt'
 import socket
-from multiprocessing import Pool, Process, cpu_count
+from multiprocessing import Process
 
 from walkabout.connection import CLOSE_CONNECTION, FLUSH_BUFFER_REQUEST
 from walkabout.connection.tcp_socket import MESSAGE_HEADER, HEADER_DELIMITER, MESSAGE_HEADER_END, \
     get_header_from_message
 from walkabout.helpers.datalib import InputStreamBuffer
+
 
 
 
@@ -206,14 +207,14 @@ class Server(object):
         function_name = networked_func.__name__
 
         def buffered_function(func):
-            if func.func_code.co_argcount == 1 and cpu_count() > 1:
-                def on_call(params):
-                    single_arguments = map(lambda x: x[0][0], params)
-                    pool = Pool(processes=cpu_count())
-                    return pool.map(func, single_arguments)
-            else:
-                def on_call(params):
-                    return [func(*args, **kwargs) for args, kwargs in params]
+            # if func.func_code.co_argcount == 1 and cpu_count() > 1:
+            #     def on_call(params):
+            #         single_arguments = map(lambda x: x[0][0], params)
+            #         pool = Pool(processes=cpu_count())
+            #         return pool.map(func, single_arguments)
+            # else:
+            def on_call(params):
+                return [func(*args, **kwargs) for args, kwargs in params]
 
             return on_call
 
