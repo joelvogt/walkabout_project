@@ -15,6 +15,7 @@ from walkabout.helpers.datalib import InputStreamBuffer
 
 
 
+
 # from pathos.multiprocessing import ProcessingPool as Pool
 # from pathos.helpers import cpu_count
 
@@ -209,8 +210,8 @@ class Server(object):
                     pool = Pool(processes=cpu_count())
                     return pool.map(func, single_arguments)
             else:
-            def on_call(params):
-                return [func(*args, **kwargs) for args, kwargs in params]
+                def on_call(params):
+                    return [func(*args, **kwargs) for args, kwargs in params]
 
             return on_call
 
