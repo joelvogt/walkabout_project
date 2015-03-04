@@ -14,7 +14,7 @@ from user_modules.basic_operations import doSum
 start = time()
 
 out = []
-for i in xrange(100):
+for i in xrange(1000):
     out.append(doSum(range(range_value)))
 print(len(out))
 stop = time()
@@ -25,7 +25,7 @@ from walkabout.base.client import import_module
 
 remote_file = import_module('basic_operations')  # , '137.138.79.116')
 start = time()
-for i in xrange(100):
+for i in xrange(1000):
     remote_file.b_doSum(range(range_value))
 print(len(list(remote_file.b_doSum)))
 stop = time()
