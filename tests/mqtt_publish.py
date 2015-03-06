@@ -1,9 +1,5 @@
 # -*- coding:utf-8 -*-
 __author__ = u'Joël Vogt'
-import sys
-
-if '/Users/joelvogt/PyCharmProjects/walkabout_project/' not in sys.path:
-    sys.path.append('/Users/joelvogt/PyCharmProjects/walkabout_project/')
 
 from walkabout.base.client import import_module
 
