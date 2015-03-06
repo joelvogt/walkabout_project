@@ -7,7 +7,7 @@ if '/Users/joelvogt/PyCharmProjects/walkabout_project/' not in sys.path:
 
 from walkabout.base.client import import_module
 
-mqtt_producer = import_module('mqtt_producer')
+mqtt_producer = import_module('mqtt_producer', '137.138.79.116')
 
 for i in range(100):
-    mqtt_producer.single('foo', hostname='137.138.79.116')
+    mqtt_producer.single('foo', 'hello fsadfdsafdsafdsaf', hostname='test.mosquitto.org', client_id='itsme')

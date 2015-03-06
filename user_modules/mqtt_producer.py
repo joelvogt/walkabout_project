@@ -9,4 +9,3 @@ from walkabout.helpers.moduleslib import networked_function
 networked_function(buffered=False)(single)
 
 networked_function(buffered=True)(multiple)
-
