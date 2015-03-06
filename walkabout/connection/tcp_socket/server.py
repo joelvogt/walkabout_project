@@ -1,12 +1,14 @@
 # -*- coding:utf-8 -*-
 __author__ = u'Joël Vogt'
 import socket
-from multiprocessing import Process
+from multiprocessing import Process, current_process
 
 from walkabout.connection import CLOSE_CONNECTION, FLUSH_BUFFER_REQUEST
 from walkabout.connection.tcp_socket import MESSAGE_HEADER, HEADER_DELIMITER, MESSAGE_HEADER_END, \
     get_header_from_message
 from walkabout.helpers.datalib import InputStreamBuffer
+
+
 
 
 
@@ -191,11 +193,9 @@ class Server(object):
     def _register_function(self, func, name):
         self._remote_functions[name] = func
 
-    def __del__(self):
-        self._tcp_server_socket.close()
 
     def run(self):
-        while True:
+        while current_process().is_alive():
             tcp_client_socket, _ = self._tcp_server_socket.accept()
             p = Process(
                 target=_function_process,
@@ -204,6 +204,7 @@ class Server(object):
                       self._remote_functions,
                       self._endpoint))
             p.start()
+        self._tcp_server_socket.close()
 
     def __call__(self, networked_func, buffered):
         function_name = networked_func.__name__
