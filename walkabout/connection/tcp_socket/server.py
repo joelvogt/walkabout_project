@@ -1,12 +1,14 @@
 # -*- coding:utf-8 -*-
 __author__ = u'Joël Vogt'
 import socket
-from multiprocessing import Process, current_process
+from multiprocessing.dummy import Process, current_process
 
 from walkabout.connection import CLOSE_CONNECTION, FLUSH_BUFFER_REQUEST
 from walkabout.connection.tcp_socket import MESSAGE_HEADER, HEADER_DELIMITER, MESSAGE_HEADER_END, \
     get_header_from_message
 from walkabout.helpers.datalib import InputStreamBuffer
+
+
 
 
 

@@ -7,7 +7,7 @@ __author__ = u'Joël Vogt'
 import imp
 from SimpleXMLRPCServer import SimpleXMLRPCServer
 import socket
-from multiprocessing import Process
+from multiprocessing.dummy import Process
 import os
 
 

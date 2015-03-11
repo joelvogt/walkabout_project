@@ -1,8 +1,5 @@
-import sys
 from time import time
 
-if '/Users/joelvogt/PyCharmProjects/walkabout_project/' not in sys.path:
-    sys.path.append('/Users/joelvogt/PyCharmProjects/walkabout_project/')
 
 
 
