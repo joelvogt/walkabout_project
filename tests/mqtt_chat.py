@@ -1,4 +1,5 @@
 from multiprocessing.dummy import Process
+import sys
 
 import paho.mqtt.client as mqtt
 
@@ -26,9 +27,4 @@ try:
         reply = raw_input('> ')
         client.publish('/chat', reply)
 except EOFError, e:
-    subscriber.terminate()
-    print('end')
-
-
-
-
+    sys.exit(0)
