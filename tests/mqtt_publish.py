@@ -1,9 +1,10 @@
 # -*- coding:utf-8 -*-
 __author__ = u'Joël Vogt'
 
-from walkabout.base.client import import_module
+from clients.walkabout_experiment import ExperimentProducer
 
-mqtt_producer = import_module('mqtt_producer')  # , '137.138.79.116')
-
-for i in range(100):
-    mqtt_producer.single('experiment/testexp', 'hello fsadfdsafdsafdsaf', hostname='test.mosquitto.org', client_id='itsme')
+fd = open('/Volumes/walkabout/milanodata.txt')
+w = ExperimentProducer('pixelman_data', 60)
+for frame in fd.readlines():
+    w.add_frame(frame)
+w.close()

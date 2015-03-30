@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 __author__ = u'Joël Vogt'
 from collections import deque
-from json import dumps
+from json import dumps, loads
 
 from walkabout.base.client import import_module
 
@@ -52,3 +52,48 @@ class ExperimentProducer(object):
     def close(self):
         self.frame_buffer.append(b'EOF')
         self.send_frames()
+
+
+try:
+    import paho.mqtt.client as mqtt
+
+    class ExperimentConsumer(object):
+        mqtt_server = 'test.mosquitto.org'
+        task = 'experiment'
+
+        def __init__(self, experiment_label, frame_action):
+            self.frame_action = frame_action
+            self.label = experiment_label
+            self.topic = '%(task)s/%(label)s' % dict(
+                task=ExperimentConsumer.task,
+                label=self.label)
+            self.client = mqtt.Client()
+            self.client.on_connect = lambda client, userdata, flags, rc: client.subscribe(self.topic)
+            self.client.on_message = self.on_message
+
+        def on_message(self, client, userdata, msg):
+            messages = loads(msg.payload.decode())
+            print(messages)
+            for frame in messages:
+                if frame == 'EOF':
+                    if hasattr(self.frame_action, 'close'):
+                        self.frame_action.close()
+                        break
+                else:
+                    self.frame_action(frame)
+
+        def listen(self):
+            self.client.connect(ExperimentConsumer.mqtt_server)
+            self.client.loop_forever()
+
+
+    class FrameAction(object):
+        """Action objects on frame should be callable and have a close function. Otherwise just usea  function"""
+
+        def __call__(self, frame):
+            assert NotImplementedError
+
+        def close(self):
+            assert NotImplementedError
+except ImportError:
+    pass
