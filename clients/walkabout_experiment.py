@@ -88,7 +88,8 @@ try:
 
 
     class FrameAction(object):
-        """Action objects on frame should be callable and have a close function. Otherwise just usea  function"""
+        """Action objects on frame should be callable and have a close function.
+        Otherwise just use a  function"""
 
         def __call__(self, topic, frame):
             assert NotImplementedError
