@@ -5,13 +5,13 @@ class DoFrame(FrameAction):
     def __init__(self):
         print('init')
 
-    def __call__(self, frame):
+    def __call__(self, topic, frame):
         print(frame)
 
     def close(self):
         print('bye bye')
 
 
-f = ExperimentConsumer('pixelman_data', DoFrame())
+f = ExperimentConsumer('+', DoFrame())
 
 f.listen()

@@ -72,15 +72,15 @@ try:
             self.client.on_message = self.on_message
 
         def on_message(self, client, userdata, msg):
+            topic = msg.topic
             messages = loads(msg.payload.decode())
-            print(messages)
             for frame in messages:
                 if frame == 'EOF':
                     if hasattr(self.frame_action, 'close'):
                         self.frame_action.close()
                         break
                 else:
-                    self.frame_action(frame)
+                    self.frame_action(topic, frame)
 
         def listen(self):
             self.client.connect(ExperimentConsumer.mqtt_server)
@@ -90,7 +90,7 @@ try:
     class FrameAction(object):
         """Action objects on frame should be callable and have a close function. Otherwise just usea  function"""
 
-        def __call__(self, frame):
+        def __call__(self, topic, frame):
             assert NotImplementedError
 
         def close(self):
