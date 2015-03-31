@@ -12,10 +12,10 @@ class ExperimentProducer(object):
     walkabout_module = 'mqtt_producer'
     task = 'experiment'
 
-    def __init__(self, experiment_label, frame_set_size):
+    def __init__(self, experiment_label, timerate):
         self.mqtt_producer = import_module(ExperimentProducer.walkabout_module)
         self.label = experiment_label
-        self.frame_set_size = frame_set_size
+        self.timerate = timerate
         self.frame_buffer = deque()
         self.frame_id = -1
         self.header = None
@@ -45,7 +45,7 @@ class ExperimentProducer(object):
         else:
             frame_object = dict(zip(self.header, frame))
             self.frame_buffer.append(frame_object)
-            if self.frame_id != first_item and (int(first_item) % self.frame_set_size) == 0:
+            if self.frame_id != first_item and (int(first_item) % self.timerate) == 0:
                 self.frame_id = first_item
                 self.send_frames()
 
