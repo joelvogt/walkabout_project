@@ -30,21 +30,22 @@ class ExperimentProducer(object):
                                   message,
                                   hostname=ExperimentProducer.mqtt_server)
 
-    def add_frame(self, raw_frame):
-        frame = raw_frame.split()
-        if len(frame) == 0:
-            frame = [raw_frame]
-        first_item = frame[0]
+    def add_frame(self, raw_event):
+        event = raw_event.split()
+        if len(event) == 0:
+            event = [raw_event]
+        first_item = event[0]
 
-        if self.frame_id == -1: #Header data, frame data starts at 0
-            self.frame_buffer.append(frame)
-            if ord(first_item[0]) >= ord('0') and ord(first_item[0]) <= ord('9'): #it's a frame number. Done processing the header
+        if self.frame_id == -1:  # Header data, event data starts at 0
+            self.frame_buffer.append(event)
+            if ord(first_item[0]) >= ord('0') and ord(first_item[0]) <= ord(
+                    '9'):  #it's a event number. Done processing the header
                 self.frame_id = int(first_item[0])
                 self.header = self.frame_buffer[-2]
                 self.frame_buffer.clear()
         else:
-            frame_object = dict(zip(self.header, frame))
-            self.frame_buffer.append(frame_object)
+            event_object = dict(zip(self.header, event))
+            self.frame_buffer.append(event_object)
             if self.frame_id != first_item and (int(first_item) % self.timerate) == 0:
                 self.frame_id = first_item
                 self.send_frames()
@@ -74,13 +75,13 @@ try:
         def on_message(self, client, userdata, msg):
             topic = msg.topic
             messages = loads(msg.payload.decode())
-            for frame in messages:
-                if frame == 'EOF':
+            for event in messages:
+                if event == 'EOF':
                     if hasattr(self.frame_action, 'close'):
                         self.frame_action.close()
                         break
                 else:
-                    self.frame_action(topic, frame)
+                    self.frame_action(topic, event)
 
         def listen(self):
             self.client.connect(ExperimentConsumer.mqtt_server)
