@@ -14,4 +14,5 @@ class DoFrame(FrameAction):
 
 f = ExperimentConsumer('+', DoFrame())
 
-f.listen()
+f.listen(False)
+print('ending')

@@ -39,7 +39,7 @@ class ExperimentProducer(object):
         if self.frame_id == -1:  # Header data, event data starts at 0
             self.frame_buffer.append(event)
             if ord(first_item[0]) >= ord('0') and ord(first_item[0]) <= ord(
-                    '9'):  #it's a event number. Done processing the header
+                    '9'):  # it's a event number. Done processing the header
                 self.frame_id = int(first_item[0])
                 self.header = self.frame_buffer[-2]
                 self.frame_buffer.clear()
@@ -71,6 +71,9 @@ try:
             self.client = mqtt.Client()
             self.client.on_connect = lambda client, userdata, flags, rc: client.subscribe(self.topic)
             self.client.on_message = self.on_message
+            self.run_once = False
+            if hasattr(frame_action, 'register_consumer'):
+                frame_action.register_consumer(self)
 
         def on_message(self, client, userdata, msg):
             topic = msg.topic
@@ -79,11 +82,14 @@ try:
                 if event == 'EOF':
                     if hasattr(self.frame_action, 'close'):
                         self.frame_action.close()
-                        break
+                    if self.run_once:
+                        self.client.disconnect()
+                    break
                 else:
                     self.frame_action(topic, event)
 
-        def listen(self):
+        def listen(self, run_once=False):
+            self.run_once = run_once
             self.client.connect(ExperimentConsumer.mqtt_server)
             self.client.loop_forever()
 
@@ -97,5 +103,20 @@ try:
 
         def close(self):
             assert NotImplementedError
+
+        def register_consumer(self, consumer):
+            self.consumer = consumer
+except ImportError:
+    pass
+
+try:
+    import cython
+
+    class PluggaleExperimentProducer(ExperimentProducer):
+        def __init__(self, experiment_label, frame_action):
+            ExperimentProducer.__init__(self, experiment_label, frame_action)
+
+
+
 except ImportError:
     pass
