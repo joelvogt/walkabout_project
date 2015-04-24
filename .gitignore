@@ -2,3 +2,4 @@
 .idea/
 var/tmp/*
 *DS_Store*
+*.c

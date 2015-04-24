@@ -12,7 +12,7 @@ class DoFrame(FrameAction):
         print('bye bye')
 
 
-f = ExperimentConsumer('+', DoFrame())
+f = ExperimentConsumer('pixelman_data', DoFrame())
 
 f.listen(False)
 print('ending')

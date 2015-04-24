@@ -108,15 +108,3 @@ try:
             self.consumer = consumer
 except ImportError:
     pass
-
-try:
-    import cython
-
-    class PluggaleExperimentProducer(ExperimentProducer):
-        def __init__(self, experiment_label, frame_action):
-            ExperimentProducer.__init__(self, experiment_label, frame_action)
-
-
-
-except ImportError:
-    pass
